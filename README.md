@@ -3,34 +3,25 @@
 **Mixed-signal sensor platform ASIC para AgTech vertical integration.**
 **IEEE SSCS PICO Open-Source Chipathon 2026 · Track B (Circuits for Sensors) + Track D (AI/LLM-assisted).**
 
+> **Scope of this repo**: chip design and high-level science framework only. Detailed business model, customer specifics, deployment economics, and proprietary algorithms (Phytophthora detection v3+, field datasets, revenue model) live in the private [Zafra-Agtech](https://github.com/Jefemaestro33/Zafra-Agtech) repo. This repo is sufficient for chipathon technical evaluation and chip-related contributions — not for business due diligence or competitive analysis.
+
 ---
 
 ## Qué es
 
 Nopal-Sense es un AFE consolidado en GF180MCU 180 nm diseñado como **componente central** del nodo Zafra-AgTech, **no como sensor discreto**. Tres funciones simultáneas:
 
-1. **Consolida** 5 sensores comerciales actuales del nodo Zafra (3× humedad capacitiva + sonda EC + ADS1115 ADC + VREF + clock externo) en un solo die más sondas pasivas de pines metálicos.
+1. **Consolida** múltiples sensores comerciales del nodo (capacitive humidity probes, EC probe, ADC externo, voltage reference, clock distribution) en un solo die más sondas pasivas de pines metálicos.
 2. **Agrega** una capability sin equivalente comercial: **espectroscopía de impedancia (IS) multi-frecuencia** en banda 10-100 kHz para detección de organismos hifales (hongos + oomicetos) en suelo agrícola.
-3. **Exporta** infrastructure que simplifica el resto del nodo: VREF de precisión, clock distribuible a ESP32, programmable power switches, interrupt aggregator. Reduce BOM y failure modes del sistema completo.
+3. **Exporta** infrastructure que simplifica el resto del nodo: VREF de precisión, clock distribuible a ESP32, programmable power switches, interrupt aggregator.
 
-El objetivo es **detección temprana de Phytophthora cinnamomi** (oomiceto causante de root rot en aguacate, $100M+ pérdidas anuales solo en MX) — vía análisis de series de tiempo de patrones IS multi-frecuencia, correlacionado con ground truth qPCR.
+El objetivo es **detección temprana de Phytophthora cinnamomi** (oomiceto causante de root rot en aguacate) — vía análisis de series de tiempo de patrones IS multi-frecuencia, correlacionado con ground truth qPCR.
 
-## Modelo de negocio: vertical integration
+## Modelo: vertical integration
 
-Zafra-AgTech **NO vende el chip al mercado**. Lo usa internamente como componente diferenciador del servicio AgTech (similar a cómo Apple usa M-series chips internamente). El moat real es el **dataset acumulado de IS multi-año × multi-organism × multi-region** que solo nosotros podemos generar.
+El operador del chip (Zafra-AgTech) **NO vende el chip al mercado abierto**. Lo usa internamente como componente diferenciador del servicio AgTech (analogía: Apple con M-series chips). Esto elimina sales channel, datasheet para clientes externos, qualification commercial-grade, y customer support — reduce significativamente NRE típico de chip startups.
 
-Esto elimina la necesidad de qualification commercial-grade, sales channel, datasheet para clientes externos, y customer support — ahorrando ~$300-500k de NRE típico de chip startups. Ver [`docs/business_model.md`](docs/business_model.md).
-
-## Estrategia dual-pilot
-
-Dos pilotos complementarios que NO compiten por recursos:
-
-| Piloto | Hardware | Goal | Período |
-|--------|----------|------|---------|
-| **Field Nextipac** (100 ha aguacate Hass) | Stack commercial actual (humidity, EC, ADS1115, T) | Operacional + comercial | Jun 2026+ (bridge state hasta v2 chip ready) |
-| **Greenhouse research** | 10 chips chipathon × 7-10 organismos puros + qPCR | Científico + técnico | Q1-Q2 2027 |
-
-**Migration path**: 2028+ los nodos field migran progressivamente del stack commercial al chip-based. v2 commercial reemplaza ~$50/nodo de BOM por chip $3 mature.
+Detalles operacionales del operador (revenue, customers, deployment economics, mask set funding) viven en el repo privado de Zafra-AgTech, NO en este repo.
 
 ## Programa científico de 3 etapas
 
@@ -40,16 +31,22 @@ Dos pilotos complementarios que NO compiten por recursos:
 | **Stage 2** | ¿Hongo (quitina) u oomiceto (celulosa)? Vía firma temporal de zoosporogenesis post-wet | **65-80%** | v1 + firmware updates |
 | **Stage 3** | ¿Qué especie específica? Vía ML supervised by qPCR ground truth | **30-50%** | v2 mask set + dataset multi-año |
 
-Cada Stage tiene valor comercial **independiente** ($1-2M/año MX | $30-60M/año | $15M premium tier). El approach escalonado permite Plan B en cada nivel — si Stage 3 falla, Stage 1+2 sostienen el negocio. Ver [`docs/research_program.md`](docs/research_program.md).
+Cada Stage tiene valor científico/operacional **independiente**. El approach escalonado permite Plan B en cada nivel — si Stage 3 falla, Stage 1+2 sostienen el negocio. Ver [`docs/research_program.md`](docs/research_program.md).
+
+## Validación: greenhouse pilot (Q1-Q2 2027)
+
+El chip v1 chipathon será validado en **greenhouse pilot controlado** (Q1-Q2 2027) con organismos puros + qPCR ground truth, NO field deployment directo. Es el approach disciplinado para validar la apuesta científica antes de scale.
+
+Detalles operacionales del greenhouse pilot (logística, partners, infrastructure budget, organism specifics) son operacionales y viven en el repo privado del operador.
 
 ## Arquitectura de 3 capas
 
 ```
-SILICIO (este repo)  →  ESP32 firmware  →  VPS / cloud (Zafra-AgTech)
+SILICIO (este repo)  →  ESP32 firmware  →  VPS / cloud (operator-side)
 estable años            actualizable semanal   itera diariamente
 ```
 
-El chip vive en silicio. El algoritmo y la inferencia ML viven en cloud, lo que mantiene chip simple y deja la ciencia evolucionar independiente del hardware.
+El chip vive en silicio. El algoritmo y la inferencia ML viven en cloud — estructura que mantiene chip simple y deja la ciencia evolucionar independiente del hardware.
 
 ## Especificaciones v1
 
@@ -81,11 +78,10 @@ nopal-sense/
 ├── CHANGELOG.md                 Historia de cambios mayores
 ├── LICENSE                      Apache 2.0 (requisito del Chipathon)
 ├── docs/
-│   ├── briefing.md              Investigación científica completa + reality checks
+│   ├── briefing.md              Investigación científica
 │   ├── plan.md                  Estrategia adaptada al concurso
 │   ├── calendario.md            Sesión por sesión del Chipathon
-│   ├── research_program.md      Stage 1/2/3 formal + greenhouse pilot
-│   └── business_model.md        Vertical integration + Apple analogy
+│   └── research_program.md      Stage 1/2/3 framework científico
 ├── v1-pico/                     Diseño para PICO Chipathon 2026
 │   ├── README.md                Overview técnico v1
 │   ├── SPEC_FROZEN.md           Especificación formal (75+ REQ)
@@ -98,7 +94,7 @@ nopal-sense/
 │   │   └── spi_slave.v          Verilog (en desarrollo)
 │   └── sim/
 │       └── golden_model.py      Modelo Python bit-exact (1212 líneas, 8/8 tests)
-└── v2-commercial/               Roadmap producto comercial 2028+
+└── v2-commercial/               Roadmap producto comercial
     └── README.md
 ```
 
@@ -111,7 +107,6 @@ nopal-sense/
 - ✅ 5 architectural reality checks documentados
 - ✅ Open Questions OQ-001 a OQ-009 formales
 - ✅ 3-stage research program formalizado
-- ✅ Dual-pilot strategy definido
 - ✅ Vertical integration model confirmed
 - ✅ Tracks B + D confirmed
 - ⏳ **Phase 1** (May 8 – May 29 2026): tooling + tutorials + mentor matching
@@ -120,16 +115,17 @@ nopal-sense/
 - ⏳ Phase 4 (Ago-Sep 2026): layout + DRC + final submission (~Oct 2026)
 - ⏳ Phase 5 (~Ene 2027+): silicon bring-up + greenhouse pilot + paper (Jul 2027)
 
-## Conexión con Zafra-AgTech
+## Operator: Zafra-AgTech
 
-Este chip es un componente de hardware usado por [Zafra-AgTech](https://github.com/Jefemaestro33/Zafra-Agtech), una plataforma de agricultura de precisión con piloto comercial en Nextipac, Jalisco (junio 2026, 100 ha de aguacate Hass).
+This chip is a hardware component of [Zafra-AgTech](https://github.com/Jefemaestro33/Zafra-Agtech), a Mexican precision agriculture platform. Zafra-AgTech operates the chip internally as part of its AgTech service — it is not sold separately.
 
-El chip es open-source bajo Apache 2.0 (requisito Chipathon). El algoritmo de scoring Phytophthora v3+ y el dataset de campo de Zafra **no son parte del open-source del chip** — viven en la capa VPS y son trade secret del negocio de Zafra.
+**Business operations, customer details, revenue model, deployment economics, and the Phytophthora detection algorithm (v3+) are proprietary and live in the private Zafra-Agtech repo, NOT in this repo.** This repo is self-contained for chip technical evaluation only.
 
-## Equipo
+Apache 2.0 covers chip design and specs. Field algorithms, datasets, and operational details are Zafra-AgTech trade secrets.
+
+## Equipo (chip-side)
 
 - **Ernest Darell Zermeño Plascencia** ([@Jefemaestro33](https://github.com/Jefemaestro33)) — chip design + Zafra-AgTech founder
-- **Salvador** — agronomic field operations (Zafra-AgTech, no co-founder técnico del chip)
 - **Mentor PICO** — TBD post-team-formation (jun 2026), preferencia analog/mixed-signal con experiencia en biosensors / electrochemical impedance
 
 ## Linaje arquitectónico
@@ -137,8 +133,8 @@ El chip es open-source bajo Apache 2.0 (requisito Chipathon). El algoritmo de sc
 Este chip extiende la línea del **2022 PICO Chipathon "Electrochemical Water Quality Monitoring" chip** (USA5, University of Tennessee) — primer chip electroquímico mixed-signal del programa. Cambios en Nopal-Sense:
 - Suelo en lugar de agua
 - IS multi-frecuencia con DDS programable
-- Architectural exports + 12 connectivity bridges para nodo IoT real
-- Vertical integration model (no se vende el chip)
+- Architectural exports + connectivity bridges para nodo IoT real
+- Vertical integration model
 - 3-stage research program disciplined
 - **Primer chip mexicano del programa PICO**
 
@@ -148,14 +144,14 @@ Este chip extiende la línea del **2022 PICO Chipathon "Electrochemical Water Qu
 |------|--------|-------------|
 | [nopal-sense](https://github.com/Jefemaestro33/nopal-sense) | Este repo (chipathon project) | Público (Apache 2.0) |
 | [tt-nopal-demo](https://github.com/Jefemaestro33/tt-nopal-demo) | Tiny Tapeout chip de práctica (separado) | Público |
-| [Zafra-Agtech](https://github.com/Jefemaestro33/Zafra-Agtech) | Sistema AgTech que el chip habilita | Privado |
+| [Zafra-Agtech](https://github.com/Jefemaestro33/Zafra-Agtech) | Sistema AgTech que opera este chip + business + algoritmos | Privado |
 | [mx-silicon-research](https://github.com/Jefemaestro33/mx-silicon-research) | Research personal de semiconductores en MX | Privado |
 
 ## Licencia
 
 - **Verilog y especificaciones técnicas:** Apache 2.0 (requisito PICO Chipathon)
 - **Documentación:** CC BY-SA 4.0
-- **Algoritmos Phytophthora + dataset de campo:** trade secret de Zafra-AgTech, NO parte de este repo
+- **Algoritmos Phytophthora + dataset de campo + business operations:** trade secret de Zafra-AgTech, NO parte de este repo
 
 ## Acknowledgments
 

@@ -1,12 +1,14 @@
 # Nopal-Sense — Plan Estratégico para PICO Chipathon 2026
 
 > Plan estratégico del proyecto **adaptado al concurso**. Distinto de la
-> investigación científica (esa va en `nopal_sense_complete_briefing.md`) y
-> distinto del calendario (ese va en `nopal_sense_chipathon_calendario.md`).
+> investigación científica (esa va en `briefing.md`) y
+> distinto del calendario (ese va en `calendario.md`).
 >
 > Este documento responde: **¿qué construyo, qué corto, cómo me posiciono, qué
 > hago con la IP, cómo defiendo cuando alguien me ataca el scope, y qué estoy
 > apostando en este chipathon?**
+
+> **Scope**: este documento cubre la estrategia del **chipathon project**. Detalles operacionales del operador (Zafra-AgTech: revenue model, customer specifics, deployment economics, equipo completo) viven en repo privado del operador, NO aquí.
 
 ---
 
@@ -136,7 +138,8 @@ ADS1115 externo + signal conditioning en **un solo die** + sondas pasivas.
 - Física: las 3 bandas (1kHz / 100kHz / 1MHz) miden conductividad iónica /
   transferencia de carga / permitividad dieléctrica. Bien estudiada (Kelleners
   2009, Loewer 2017)
-- Ahorro BOM: 34-48% por nodo. Vida de batería: 2 semanas → 6-12 meses.
+- Significant BOM reduction per node + battery life extension (specific
+  numbers in operator's private repo).
 
 **Si solo esto funciona, el chip ya es exitoso.** Es el "fall-back con dignidad".
 
@@ -186,14 +189,14 @@ Datos duros:
 
 ### 4.2 Aplicación con mercado real ya operando
 
+Market context público:
 - Aguacate: México #1 exportador mundial, ~$3B USD/año en exportaciones
-- Phytophthora cinnamomi: $100M+ USD/año en pérdidas mexicanas
-- Zafra-AgTech: piloto comercial 100ha junio 2026 en Nextipac, Jalisco
-- Salvador (agrónomo): infraestructura de campo lista
-- Modelo de negocio: revenue share 30%
+- Phytophthora cinnamomi: $100M+ USD/año en pérdidas mexicanas reportadas
+
+Operational backing: existe operador (Zafra-AgTech) con piloto comercial activo en Jalisco. Detalles operacionales (modelo de negocio, customers, equipo completo, deployment economics) en repo privado del operador.
 
 La mayoría de equipos PICO son académicos diseñando building blocks. Tú vienes
-con un **producto end-to-end de un mercado real**. Eso es raro.
+con **operational backing real**. Eso es raro.
 
 ### 4.3 Pipeline de medición ya construido
 
@@ -202,8 +205,8 @@ equipos llega a "Build" pero falla en "Test" porque no tienen lab, no tienen
 muestras, no tienen partners. Tú llegas con:
 
 - Andisol caracterizado (suelo volcánico de Jalisco)
-- 416K+ lecturas de campo previas
-- 100ha pilot en junio 2026 generando datos
+- Background de field deployment con commercial sensors
+- Pipeline operacional activo del operador (specifics en repo privado)
 - Partner potencial con qPCR (INECOL Veracruz, UCR Eskalen Lab)
 - AD5940 lab plan documentado (mayo-junio 2026)
 
@@ -242,15 +245,10 @@ flujo". Te coloca en el percentil ~30% de credibilidad técnica desde el día 1.
 Hechos no negociables:
 - El chip va a ser open-source bajo Apache 2.0. **Sí o sí.** El programa lo
   exige. Cualquiera puede tomar el GDS y mandarlo a fabricar.
-- Tu **moat real de Zafra** son: (a) algoritmo Phytophthora v3+ en VPS,
-  (b) dataset de 416K+ lecturas + muestras pareadas qPCR futuras, (c)
-  relaciones comerciales (Salvador, productores piloto, INECOL/UCR si los
-  enganchas), (d) integración del sistema completo (firmware + dashboard
-  + WhatsApp + revenue share), (e) narrativa de fundador.
+- El **moat real del operador** son: (a) algoritmo propietario en VPS, (b) dataset histórico + muestras pareadas qPCR futuras, (c) relaciones comerciales (operacionales del operador), (d) integración del sistema completo (firmware + dashboard + servicio), (e) narrativa de fundador. Detalles específicos viven en repo privado del operador.
 
-**Conclusión:** El chip es un **componente** que Zafra usa, no es Zafra.
-Si TI te vendiera mañana un chip mejor a $1, lo usarías y Zafra seguiría
-siendo Zafra.
+**Conclusión:** El chip es un **componente** que el operador usa, no es el negocio del operador.
+Si un competidor commercial vendiera mañana un chip mejor, lo usarían y el negocio del operador seguiría siendo el mismo (porque el moat real es algoritmo + dataset + relaciones, no el chip).
 
 ### 5.2 Modelo de colaboración: open-source contributors, no co-founders
 

@@ -1,57 +1,33 @@
-# Nopal-Sense: Briefing Completo (v2)
+# Nopal-Sense: Briefing Técnico-Científico
 
 ## Qué es esto
 
-Este documento explica todo sobre Nopal-Sense: qué es, por qué existe, qué
-ciencia lo respalda, qué riesgos tiene técnicos y biológicos, qué precedentes
-hay en silicio, y qué inconsistencias arquitectónicas estamos manejando hacia
-el tape-out de septiembre 2026. Es la fuente de verdad técnico-científica del
-proyecto.
+Este documento explica el **chip y su ciencia**: qué es Nopal-Sense, qué ciencia lo respalda, qué riesgos tiene técnicos y biológicos, qué precedentes hay en silicio, y qué inconsistencias arquitectónicas estamos manejando hacia el tape-out de octubre 2026. Es la fuente de verdad técnico-científica del proyecto.
+
+> **Scope**: este documento cubre el chip y la ciencia que habilita. Detalles operacionales del operador (Zafra-AgTech: revenue model, customer specifics, deployment economics, BOM economics, algoritmos propietarios) **NO están en este documento ni en este repo**. Viven en el repo privado del operador. La info aquí es suficiente para entender la apuesta técnica del chip; insuficiente para business due diligence.
 
 Está pensado para que alguien que no sabe nada del proyecto pueda leerlo de
-principio a fin y entender la propuesta completa, incluyendo sus fortalezas
+principio a fin y entender la propuesta técnica completa, incluyendo sus fortalezas
 reales y sus puntos de fragilidad documentados.
 
 **Documentos hermanos:**
-- `nopal_sense_chipathon_plan.md` — estrategia del proyecto adaptada al concurso
-- `nopal_sense_chipathon_calendario.md` — sesión por sesión del Chipathon
+- `plan.md` — estrategia del proyecto adaptada al concurso
+- `calendario.md` — sesión por sesión del Chipathon
+- `research_program.md` — framework científico de las 3 etapas
 
-**Última actualización:** 7 mayo 2026 (vísperas del Chipathon kick-off).
+**Última actualización:** 8 mayo 2026 (Chipathon kick-off day).
 
 ---
 
-## 1. Contexto: Zafra-AgTech
+## 1. Operational context
 
-Zafra-AgTech es una startup mexicana de agtech enfocada en monitoreo de huertas
-de aguacate en Jalisco, México. Su producto actual es una plataforma que
-combina:
+El operador del chip es **Zafra-AgTech** — una startup mexicana de agtech enfocada en monitoreo de huertas de aguacate en Jalisco. Su producto combina sensores commerciales de suelo (humedad capacitiva, EC, temperatura), un algoritmo propietario de scoring de Phytophthora v3+, y un dashboard de servicio para productores.
 
-- **Sensores de suelo de bajo costo** (humedad volumétrica a 3 profundidades,
-  conductividad eléctrica, temperatura) usando sondas capacitivas y sensores
-  TDS analógicos, conectados vía LoRa.
-- **Score de Phytophthora v3**: un algoritmo basado en reglas que cruza humedad
-  × EC × temperatura para generar un índice de riesgo de Phytophthora root rot
-  (PRR), la enfermedad más devastadora del aguacate.
-- **Dashboard React + alertas por WhatsApp** para productores.
-- **Modelo de negocio**: revenue share del 30% sobre el aumento de rendimiento
-  demostrable.
+> Detalles operacionales del operador (modelo de negocio, customer specifics, equipo completo, deployment economics) viven en repo privado del operador, NO aquí. Lo que sigue es suficiente contexto para entender por qué se necesita el chip.
 
-El piloto arranca en junio 2026 en Nextipac, Jalisco (100 ha, 50-80 nodos).
+**El problema técnico central que motiva el chip:** el scoring actual del operador detecta *condiciones favorables* para Phytophthora cinnamomi, no la enfermedad misma. Cuando los sensores comerciales detectan anomalías, el árbol ya puede llevar meses infectado con daño radicular significativo. Los métodos directos (PCR, espectroscopía de laboratorio) existen pero son caros y lentos.
 
-**Equipo:**
-- **Ernest Darell Zermeño** — ingeniería, diseño de chip, software backend
-- **Salvador** — agrónomo de campo (operaciones agronómicas en huertos piloto)
-
-Salvador es teammate operativo de Zafra; en el contexto del Chipathon su rol
-es acceso a campo + ground truth biológico, no co-founder técnico del chip. La
-distinción importa para definir scope de propiedad intelectual y autoría
-académica.
-
-**El problema central:** el score de Phytophthora v3 detecta *condiciones
-favorables* para la enfermedad, no la enfermedad misma. Cuando los sensores
-detectan anomalías, el árbol ya puede llevar 3-6 meses infectado con 30-50% de
-daño radicular. Los métodos de detección directa existen (PCR, espectroscopía
-de laboratorio) pero cuestan $500 USD por análisis y toman una semana.
+**El chip propone**: capability nueva (multi-frequency impedance spectroscopy en banda 10-100 kHz) que permite detección biológica directa, complementando el scoring indirecto actual. Es lo que ningún chip comercial provee a costo de campo.
 
 ---
 
@@ -139,26 +115,13 @@ software perdería precisión y batería.
 - Precio/chip: $5-8 USD
 - Detalle completo: ver `open-silicon-mx/nopal-platform/v2-commercial/README.md`
 
-### 2.4 Impacto en BOM
+### 2.4 Impacto en BOM (qualitative)
 
-| Componente | Nodo tradicional | Nodo con Nopal-Sense v1 |
-|---|---|---|
-| Sensor humedad × 3 | $150 MXN | — (integrado vía IS) |
-| Sonda EC | $100 MXN | — (integrado vía IS) |
-| ADS1115 ADC externo | $80 MXN | — (integrado) |
-| Chip Nopal-Sense | — | $120 MXN |
-| PCB + pasivos | $150 MXN | $70 MXN |
-| Cables al suelo | 25-35 | 8-10 |
-| **TOTAL MÓDULO ELECTRÓNICO** | **$560 MXN** | **$290-370 MXN** |
+El chip consolida múltiples sensores commerciales en un solo die más sondas pasivas. Esto reduce el costo del módulo electrónico, mejora vida de batería (menos chips activos) y reduce puntos de falla (menos componentes discretos).
 
-**Ahorro:** 34-48% por nodo. Vida de batería: 2 semanas → 6-12 meses. Puntos
-de falla: 30+ → 10-12.
+> Análisis cuantitativo de BOM (números específicos por nodo, savings %, comparison vs alternatives commerciales) es parte del business plan del operador y **vive en repo privado**. Los números públicos generales sobre consolidation savings vienen de literatura standard de IC integration.
 
-⚠️ *Nota sobre el costo total del nodo desplegado:* el ahorro listado es del
-módulo electrónico. El nodo completo desplegado (sondas + PCB + radio LoRa +
-batería + carcasa IP67 + cables) suma típicamente $15-35 USD adicionales que
-no cambian con Nopal-Sense. **El chip optimiza el subsistema sensor, no el
-nodo completo.**
+**Conceptualmente**: cualquier consolidation IC reduce BOM 30-50% vs commercial discrete equivalents. El chip Nopal-Sense agrega además una capability nueva (IS multi-freq) que NO tiene equivalente commercial — por lo tanto el saving es net-positive aún si el chip es más caro que la suma de partes commerciales que reemplaza.
 
 ---
 
@@ -809,12 +772,12 @@ upside si Layer 2 funciona empíricamente.
 disease risk from environmental proxies. Nobody measures the
 frequency-dependent impedance spectrum, which carries distinct signatures at
 each band. We're designing a custom chip in GF180MCU 180nm that consolidates
-5 commercial sensors into one die and adds a measurement channel that
+multiple commercial sensors into one die and adds a measurement channel that
 doesn't exist in any commercial product: electrical fingerprinting of
 microbial activity in the root zone. Even if the biological channel proves
-noisy in field deployment, sensor consolidation alone cuts node BOM by 47%
-and extends battery life 100×, with first commercial pilot already deployed
-in Mexico (Zafra-AgTech, 100 ha avocado orchard, June 2026)."*
+noisy in field deployment, sensor consolidation alone delivers significant
+BOM reduction and battery life extension. Operational backing via
+Zafra-AgTech (precision agriculture pilot in Mexico)."*
 
 ### 13.2 Para académicos / IEEE Workshop
 
@@ -941,16 +904,12 @@ Para referencia rápida durante el chipathon:
 ## 17. Cómo leer este documento según contexto
 
 - **Si eres mentor PICO:** secciones 2, 3, 4, 9, 11, 13.
-- **Si eres inversor o evaluador comercial:** secciones 1, 2.4, 5, 13.1, 14.
 - **Si eres académico o reviewer paper:** secciones 6, 7, 8, 10, 13.2, 16.
 - **Si eres colaborador potencial del Chipathon:** secciones 4, 9, 11, 15.
-- **Si eres productor aguacatero / Salvador / agronomista:** secciones 1, 2.4,
-  10, 13.3.
 
 ---
 
-*Owner:* Ernest Darell Zermeño (chip design + Zafra-AgTech founder).
-*Field operations:* Salvador (agrónomo Zafra-AgTech).
-*Repo público:* github.com/Jefemaestro33/open-silicon-mx
+*Owner:* Ernest Darell Zermeño (chip design + operator's founder).
+*Repo público:* github.com/Jefemaestro33/nopal-sense
 *PICO Chipathon 2026:* Track B (Circuits for Sensors) + Track D (AI/LLM-assisted).
-*Última actualización:* 7 mayo 2026.
+*Última actualización:* 8 mayo 2026.

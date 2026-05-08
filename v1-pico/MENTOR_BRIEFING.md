@@ -8,13 +8,13 @@
 
 ## TL;DR
 
-Diseñando **mixed-signal sensor platform ASIC** que reemplaza 5 sensores comerciales actuales (3× capacitive humidity + EC + ADS1115 + VREF + clock) y agrega **multi-freq impedance spectroscopy** (10-100 kHz) para detección de organismos hifales en suelo agrícola. NO discrete IS sensor — es plataforma consolidada.
+Diseñando **mixed-signal sensor platform ASIC** que reemplaza múltiples sensores comerciales (capacitive humidity + EC + ADC + VREF + clock) y agrega **multi-freq impedance spectroscopy** (10-100 kHz) para detección de organismos hifales en suelo agrícola. NO discrete IS sensor — es plataforma consolidada.
 
-**Vertical integration model**: Zafra-AgTech (mi startup AgTech, piloto operacional 100 ha aguacate Hass en Nextipac/Jalisco junio 2026) usa el chip internamente, no lo vende al mercado.
+**Vertical integration model**: el operador del chip (mi startup AgTech, Zafra-AgTech, con piloto operacional en aguacate en Jalisco, México) usa el chip internamente, no lo vende al mercado. Detalles operacionales en repo privado del operador.
 
-**Greenhouse pilot Q1-Q2 2027** valida la apuesta científica con 10 chips × 7-10 organismos puros + qPCR ground truth.
+**Greenhouse pilot Q1-Q2 2027** valida la apuesta científica con organismos puros + qPCR ground truth en condiciones controladas.
 
-**Programa científico de 3 etapas escalonadas** (Stage 1 >90%, Stage 2 65-80%, Stage 3 30-50% probabilidades). Cada Stage tiene valor comercial independiente — Plan B en cada nivel.
+**Programa científico de 3 etapas escalonadas** (Stage 1 >90%, Stage 2 65-80%, Stage 3 30-50% probabilidades). Cada Stage tiene valor independiente — Plan B en cada nivel.
 
 **Background**: Software/data engineering deep, **first mixed-signal chip**. Tiny Tapeout digital previo (SKY130, precheck PASS).
 
@@ -47,11 +47,11 @@ Pre-mentor research program: [`../docs/research_program.md`](../docs/research_pr
 
 ## El contexto que importa
 
-### Zafra-AgTech (operational context)
+### Operational context
 
-Tengo una empresa AgTech (Zafra-AgTech) con piloto operacional iniciando junio 2026 en 100 ha de aguacate Hass en Nextipac, Jalisco. Stack actual: ESP32 + LoRa + 3× capacitive humidity probes + EC probe + ADS1115 ADC + DS18B20. Funciona, pero **NO tiene impedance spectroscopy** — y ese es exactamente el canal que necesitamos para detectar Phytophthora cinnamomi (oomiceto causante de root rot, $100M+/año pérdidas en MX avocado).
+Soy founder de un AgTech startup (Zafra-AgTech) con piloto operacional en aguacate Hass en Jalisco, México. Stack actual del nodo usa sensor commercial conocido (capacitive humidity, EC, ADC externo, etc.). Funciona, pero **NO tiene impedance spectroscopy** — y ese es exactamente el canal que necesitamos para detectar Phytophthora cinnamomi (oomiceto causante de root rot, problema económico significativo en MX avocado industry).
 
-El chipathon chip Nopal-Sense **agrega esa capability** (IS) Y **consolida** la stack actual en un solo die. Reemplaza ~$50/nodo de BOM por chip $3 mature volume — eso es $380k-$1.9M/año savings a 10k-50k nodos solo de consolidation, antes de contar el valor de la nueva capability IS.
+El chipathon chip Nopal-Sense **agrega esa capability** (IS) Y **consolida** la stack del nodo en un solo die. Detalles operacionales del operador (revenue, customers, deployment economics) están en repo privado del operador, no en este repo.
 
 ### Por qué custom chip vs AD5940
 
@@ -69,13 +69,13 @@ Nuestro chip custom enables ambos:
 
 ### Vertical integration (no vendemos el chip)
 
-A diferencia de chip startup tradicional, Zafra-AgTech NO vende Nopal-Sense al mercado. Lo usa internamente como diferenciador del servicio AgTech (similar a Apple con M-series). Esto elimina ~$300-500k de NRE típico (sales, datasheet, customer support, qualification). Ver [`../docs/business_model.md`](../docs/business_model.md).
+A diferencia de chip startup tradicional, el operador (Zafra-AgTech) NO vende Nopal-Sense al mercado. Lo usa internamente como diferenciador del servicio AgTech (similar a Apple con M-series). Esto elimina mucho del NRE típico (sales, datasheet, customer support, commercial qualification) — pero los detalles operacionales del modelo de negocio están en el repo privado del operador.
 
 ---
 
 ## El programa científico (3 etapas escalonadas)
 
-El chip va a un **greenhouse pilot Q1-Q2 2027**, NO a field deployment directo. 10 chips chipathon dedicados a 7-10 organismos puros + qPCR ground truth weekly. Approach escalonado:
+El chip va a **greenhouse research validation Q1-Q2 2027**, NO a field deployment directo. Approach escalonado:
 
 | Stage | Pregunta | Probabilidad | Lo que valida |
 |-------|----------|--------------|---------------|
@@ -83,11 +83,11 @@ El chip va a un **greenhouse pilot Q1-Q2 2027**, NO a field deployment directo. 
 | **Stage 2** | ¿Hongo (quitina) u oomiceto (celulosa)? | **65-80%** | Firma temporal de zoosporogenesis post-wet event |
 | **Stage 3** | ¿Especie específica? (P. cinnamomi vs P. infestans) | **30-50%** | ML supervised by qPCR (requiere v2 chip + dataset multi-año) |
 
-Cada Stage tiene valor comercial independiente ($1-2M/año MX | $30-60M/año | $15M premium). **Aún si Stage 3 nunca funciona, Stage 1+2 sostienen el negocio.** Esa es la disciplina de la apuesta.
+Cada Stage tiene valor independiente. **Aún si Stage 3 nunca funciona, Stage 1+2 sostienen la utilidad del chip.** Esa es la disciplina de la apuesta.
 
 Mecanismo físico clave: oomicetos tienen **paredes celulares de celulosa** (vs quitina en hongos verdaderos) y producen **zoosporas móviles** después de wet events. Eso da firma temporal distinguible aunque steady-state fingerprinting falle.
 
-Ver [`../docs/research_program.md`](../docs/research_program.md) para diseño experimental detallado.
+Ver [`../docs/research_program.md`](../docs/research_program.md) para framework científico completo.
 
 ---
 
@@ -101,10 +101,8 @@ Ver [`../docs/research_program.md`](../docs/research_program.md) para diseño ex
 - Block-level area estimates
 - Power budget per block + per cycle
 - Python golden model (1212 lines, 8/8 tests passing)
-- Business context + go-to-market plan (Zafra-AgTech piloto 2026)
-- 416K+ soil sensor readings from prior commercial-stack field deployment
+- Operational backing via Zafra-AgTech (details in private repo)
 - 3-stage research program formalizado
-- Dual-pilot strategy definido
 - Vertical integration model confirmed
 
 ### ⏳ In progress
@@ -156,7 +154,7 @@ Ver [`../docs/research_program.md`](../docs/research_program.md) para diseño ex
 ## What I Bring
 
 - **Domain expertise**: AgTech operational + bioinformatics background
-- **Real sensor data**: 416K+ readings from prior Zafra-AgTech field deployment (using commercial sensors — el chip los va a reemplazar)
+- **Real sensor data background**: prior commercial sensor deployments validate operational use case (specifics in operator's private repo)
 - **Python golden model**: 1212 lines, bit-exact spec, 8/8 unit tests passing
 - **Software discipline**: Backend, dashboard, Phytophthora scoring v3 ya en producción
 - **Documentation discipline**: SPEC_FROZEN, ARCHITECTURE, ROADMAP, research_program, business_model — todos versionados
@@ -194,7 +192,7 @@ Si assigned mentor es digital-only:
 - Partner con otro team's mentor para analog reviews
 - Use PDK forums + GF180MCUD community para analog questions
 
-Pero **prefiero preservar IS como flagship** — es lo que valida la apuesta científica de Zafra-AgTech y el moat real del producto.
+Pero **prefiero preservar IS como flagship** — es lo que valida la apuesta científica del operador y el moat real del producto.
 
 ---
 
@@ -205,7 +203,7 @@ Pero **prefiero preservar IS como flagship** — es lo que valida la apuesta cie
 ## Por qué este proyecto importa
 
 - **First Mexican chip del programa PICO** (programa global, ~5 personas en MX han taped-out independientemente)
-- **Operational use real** desde día 1 (no académico-only — Zafra deployment activo)
+- **Operational backing real** desde día 1 (no académico-only — operator deployment activo)
 - **Disciplined research program** con probability framings honestas, no hype
 - **Open-source bajo Apache 2.0** — chip design público, datos comerciales privados (clean IP boundary)
 - **Track D angle**: RTL completamente co-diseñado con Claude AI (case study LLM-assisted chip design real-world)
