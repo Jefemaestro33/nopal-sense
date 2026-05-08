@@ -1,11 +1,21 @@
 # Nopal-Sense v1 — Execution Roadmap
 
-**Period covered:** 2026-05-01 (PICO onboarding) → 2027-07-31 (IEEE workshop + paper submission)
+**Period covered:** 2026-05-08 (Chipathon kickoff) → 2027-07-31 (IEEE workshop + paper submission)
 **Document type:** Executable project roadmap with gates, deliverables, decision log, and risk register
 **Owner:** Ernest Darell Zermeño Plascencia
 **Status:** Active — updated as execution progresses
+**Last major update:** 2026-05-08 — strategic clarifications (vertical integration, 3-stage research, dual-pilot)
 
-This document is the **operational manual** for executing Nopal-Sense v1 from spec (done) to silicon-validated field deployment (July 2027). It consolidates phase-by-phase deliverables, gates of decision, the history of decisions already taken, and active risks with mitigation owners.
+This document is the **operational manual** for executing Nopal-Sense v1 from spec to **greenhouse-validated science** (Q2 2027) and paper submission (July 2027). It consolidates phase-by-phase deliverables, gates of decision, the history of decisions already taken, and active risks with mitigation owners.
+
+> ⚠️ **2026-05-08 Note**: Algunas fechas y referencias (especialmente PICO onboarding "1 may", QFN-40, 1.8V dual voltage) reflejan asunciones del SPEC original. Realidad post-validation:
+> - **Kickoff fue 8 may 2026** (Boris Murmann + Mehdi Saligane), no 1 may
+> - **Padring**: workshop slot 88-pin, no QFN-40
+> - **Voltaje**: 3.3V único, no dual 1.8V/3.3V
+> - **Tape-out**: ~oct 2026 (post Final Chip Review 28 sept), no 30 sept
+> - **Phase 7**: greenhouse pilot (validar science con chips chipathon), NO field deployment directo. Field continúa con commercial sensor stack hasta v2 chip ready (2029-2030).
+>
+> Para framing estratégico actual, ver [`../README.md`](../README.md), [`../docs/research_program.md`](../docs/research_program.md), [`../docs/business_model.md`](../docs/business_model.md), y [`../CHANGELOG.md`](../CHANGELOG.md) (entry 2026-05-08).
 
 ---
 
@@ -302,37 +312,52 @@ This document is the **operational manual** for executing Nopal-Sense v1 from sp
 
 ---
 
-### Phase 7 — Field Validation (2027-03-01 to 2027-06-30)
+### Phase 7 — Greenhouse Pilot Validation (2027-03-01 to 2027-06-30)
 
-**Purpose:** Deploy chips in Nextipac pilot orchard; collect real data with qPCR ground truth.
+**Purpose:** **Validate Stage 1 + Stage 2 science** in greenhouse controlled conditions con chips chipathon × 7-10 organismos puros + qPCR ground truth weekly. NOT field deployment directo — eso es bridge state con commercial sensors.
 
-#### March 2027: Deploy
-- [ ] Assemble 10 chip-instrumented nodes
-- [ ] Deploy on the 4-hectare Nextipac pilot
-- [ ] Coordinate with CUCBA-UdG for qPCR baseline sampling
+> Esta phase fue reframeada 2026-05-08. Original era "Field Validation". Razón: 5-15 chips chipathon no alcanzan para field deployment de 30+ nodos, pero alcanzan PERFECTO para greenhouse research con 1 chip × 1 organismo. Field continúa con commercial sensor stack hasta v2 chip ready (~2029-2030).
+>
+> Ver [`../docs/research_program.md`](../docs/research_program.md) para diseño experimental detallado.
 
-#### April 2027: Continuous measurement
-- [ ] Chips run 24/7 taking IS measurements every hour
-- [ ] CUCBA performs qPCR monthly (Phytophthora cinnamomi + 4 other markers)
-- [ ] Cross-correlate IS signatures with qPCR results
+#### March 2027: Greenhouse setup + chip bring-up complete
+- [ ] 10 chips chipathon empacados disponibles (post Phase 6 bring-up)
+- [ ] Greenhouse access confirmed (UdG/ITESO/CINVESTAV partner)
+- [ ] Pure cultures secured: P. cinnamomi, P. infestans, Pythium ultimum, Trichoderma harzianum, Aspergillus niger, Bacillus subtilis, controles
+- [ ] qPCR partner confirmed (CIATEJ o similar)
+- [ ] Lab tech part-time onboarded
+- [ ] 30 macetas with avocado seedlings + soil sterilization
+- [ ] 4 electrodos acero inox + cables shielded × 10 chip setups
 
-#### May 2027: Statistical analysis
-- [ ] Build dataset: sensor + IS + qPCR for ~60 tree-time points
-- [ ] Train classifier: IS features → Phytophthora presence probability
-- [ ] Cross-validation: leave-one-block-out
+#### April 2027: Inoculation + baseline IS
+- [ ] Inocular cada organismo en su maceta dedicada según asignación
+  (Chip 1: sterile / Chip 2: Nextipac natural / Chip 3-4: P. cinnamomi
+   / Chip 5: P. infestans / Chip 6: Pythium / Chip 7: Trichoderma /
+   Chip 8: Aspergillus / Chip 9: Bacillus / Chip 10: spare/cal)
+- [ ] Baseline IS sweep × 7 días pre-inoculation
+- [ ] qPCR baseline para todas las macetas
 
-#### June 2027: Publication-ready dataset
-- [ ] Clean dataset with metadata
-- [ ] Document methodology
-- [ ] Prepare figures for paper
+#### May 2027: Continuous measurement + wet-dry cycling
+- [ ] IS continuous: sweep cada 6h × 30 días (Stage 1 validation)
+- [ ] Wet-dry cycling weekly: irrigation Día 1 → IS sweep cada 30 min Día 1-3 → cada 6h Día 4-7 (Stage 2 zoosporogenesis detection)
+- [ ] qPCR weekly de todas las macetas
+- [ ] Environmental data: T, humidity, light continuous
+
+#### June 2027: Statistical analysis + paper draft
+- [ ] Build dataset etiquetado: ~500 MB raw + qPCR pairs
+- [ ] Stage 1 analysis: PCA en feature space para sterile vs activos clustering
+- [ ] Stage 2 analysis: zoosporogenesis temporal signature post-wet event
+- [ ] ML model preliminary: classifier hongo vs oomicete
+- [ ] Paper outline: "Multi-Frequency IS for Soil Hyphal Detection: Custom 180nm AFE"
 
 #### 🚪 Gate 7 Criteria (must pass by 2027-06-30)
-- ✅ ≥ 60 paired observations (sensor + IS + qPCR)
-- ✅ Statistical analysis shows either correlation OR absence with confidence intervals
-- ✅ Dataset documented and reproducible
-- ✅ CUCBA co-authorship secured
+- ✅ Stage 1 demonstrated: clear separation between sterile vs hyphal-active soil in IS feature space (>90% target probability)
+- ✅ Stage 2 evidence: temporal signature of zoosporogenesis detected in oomycete cultures vs absent in fungal cultures (65-80% target)
+- ✅ Dataset documentado, etiquetado, reproducible
+- ✅ qPCR partner co-authorship secured
+- ✅ Paper outline + figures drafted
 
-**If Gate 7 fails (e.g., no correlation found):** This is still a publishable result — "we showed low-cost IS does NOT discriminate Phytophthora in Andisol soil within our sensitivity range." Negative results advance the field.
+**If Gate 7 fails (e.g., no Stage 1 separation):** Aún publishable como "negative results in soil IS biological detection at 180nm". Mitigation: ampliar análisis con commercial reference (AD5940) measurements para isolation de chip-specific issues vs fundamental science issues.
 
 ---
 

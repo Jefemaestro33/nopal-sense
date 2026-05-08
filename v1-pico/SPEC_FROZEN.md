@@ -1,12 +1,48 @@
 # Nopal-Sense v1 — Frozen Specification
 
-**Document status:** DRAFT (frozen target: 2026-05-01, pre-onboarding PICO)
-**Version:** 0.1
-**Date:** 2026-04-18
-**Owner:** Darell Plascencia (Ernest Darell Zermeño)
+**Document status:** DRAFT (frozen target: 2026-05-08 chipathon kickoff)
+**Version:** 0.2 (PDK reality alignment + 3-stage priority labels pending)
+**Date:** 2026-04-18 (original) / 2026-05-08 (strategic clarifications)
+**Owner:** Ernest Darell Zermeño Plascencia
 
 Este documento es el **contrato técnico** entre el equipo de diseño y el mentor PICO.
 Todo cambio post-freeze requiere revisión formal.
+
+> ⚠️ **2026-05-08 Update — PDK reality alignment pending in this doc**:
+> Algunos items abajo (especialmente §2 Process and Technology y §1.3 Interfaces) reflejan asunciones pre-PDK-validation:
+> - **SP-TEC-003 QFN-40** → workshop slot 88-pin padring confirmed
+> - **SP-TEC-004 die 2.64 mm²** → die 2935×2935 µm (8.6 mm²), core 2051×2051 µm (4.2 mm²)
+> - **SP-PWR-002 VDD_D = 1.8V dual rail** → 3.3V único (PDK GF180MCUD no soporta 1.8V cells)
+> - **SC-OUT-009 LDO 1.8V externo** → ya no aplica (3.3V único)
+> - **SC-IN-008 connectivity bridges 12** → reducido a 8-10 después de pin recortes
+> - **EN_LDO pin** → eliminado
+> - **CS_MEM pin** → eliminado (FeRAM externa diferida a v2)
+>
+> Para framing estratégico actual ver:
+> - [`../README.md`](../README.md) — platform vision + 3-stage research + dual-pilot
+> - [`../docs/research_program.md`](../docs/research_program.md) — Stage 1/2/3 framework
+> - [`../docs/business_model.md`](../docs/business_model.md) — vertical integration
+> - [`../CHANGELOG.md`](../CHANGELOG.md) — entry 2026-05-08 strategic clarifications
+> - [`ARCHITECTURE.md`](./ARCHITECTURE.md) §11 — modular spine + priority labels (P1/P2/P3)
+>
+> **Priority labeling (P1/P2/P3) per requirement será agregado progresivamente** durante mayo-junio antes del Project Proposal Review (jun 12). El mentor PICO confirma decisiones finales.
+
+---
+
+## 0. Priority strategy (NEW 2026-05-08)
+
+Para reducir bring-up risk del v1, los REQ-* se etiquetarán con priority labels:
+
+- **[P1]** — Must-work bring-up gate. IS path + ADC + SPI + VREF + bandgap. Failure = no paper.
+- **[P2]** — Firmware-debugged si borderline. Humidity readout, EC, MUX, auto-zero. Failure = degraded but useful chip.
+- **[P3]** — Deferable a v1.1. Power switches, clock export, IRQ aggregator. Failure = bypass with commercial counterparts.
+
+**Mapping a Stage research program**:
+- Stage 1 (presence) → P1 IS path + ADC suficiente. v1 ready.
+- Stage 2 (kingdom) → P1 + firmware updates. v1 ready.
+- Stage 3 (species) → Requires v2 mask set.
+
+Es decir: **el v1 chipathon es específicamente diseñado para validar Stages 1 y 2 con high probability.**
 
 ---
 

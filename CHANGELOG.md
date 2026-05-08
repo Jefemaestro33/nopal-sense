@@ -2,6 +2,82 @@
 
 Historial de cambios mayores del proyecto Nopal-Sense.
 
+## 2026-05-08 — Strategic clarifications pre-kickoff
+
+Esta entrada documenta clarificaciones estratégicas mayores hechas durante deep-thinking session pre-kickoff. Ningún cambio de SPEC o RTL — son framings que afectan cómo se comunica y prioriza el proyecto.
+
+### Vertical integration model confirmed
+- **Zafra-AgTech NO vende el chip** al mercado abierto. Lo usa internamente
+  como componente diferenciador del servicio AgTech (analogous a Apple con
+  M-series chips).
+- Esto elimina ~$300-500k de NRE típico de chip startups: no sales channel,
+  no datasheet para clientes, no qualification commercial-grade, no customer
+  support de chips.
+- Implicación: el chip es CapEx para Zafra, no producto comercial. Cost
+  trajectory: $250/chip MPW (2027) → $3/chip mask set mature (2030+).
+- Ver `docs/business_model.md` (creado en este sprint).
+
+### Chip como plataforma, no sensor discreto
+- Re-énfasis: el chip cumple **3 funciones simultáneas**, no solo IS:
+  (1) **Consolida** 5 sensores commerciales actuales del nodo Zafra
+  (2) **Agrega** capability nueva (IS multi-freq)
+  (3) **Exporta** infrastructure (VREF, clock, power switches, IRQ aggregator)
+- Comparación BOM: $96/nodo commercial stack → $58/nodo chip-based mature
+  ($38/nodo savings × 10k+ nodos = $380k+/año puro consolidation savings)
+- Pitch a mentor cambia de "IS sensor IC" a "consolidated AFE platform".
+
+### Programa científico de 3 etapas formalizado
+Cada Stage es **independientemente valiosa** y proporciona Plan B si las
+siguientes fallan.
+
+| Stage | Pregunta | Probabilidad |
+|-------|----------|--------------|
+| Stage 1 | ¿Hay organismo hifal? | >90% |
+| Stage 2 | ¿Hongo (quitina) u oomiceto (celulosa)? Vía firma temporal de zoosporogenesis | 65-80% |
+| Stage 3 | ¿Especie específica? Vía ML qPCR-supervised | 30-50% |
+
+- Mecanismo físico clave para Stage 2: oomicetos liberan zoosporas móviles
+  post-wet event → spike detectable en Z(ω) que hongos no producen.
+- Stage 1 alone = $1-2M/año MX market (organic farms + soil health).
+- Stage 1+2 = $30-60M/año MX (avocado + citrus Phytophthora detection).
+- Stage 3 = $15M premium tier (species-specific treatment selection).
+- Ver `docs/research_program.md` (creado en este sprint).
+
+### Dual-pilot strategy
+Dos pilotos paralelos que NO compiten por recursos:
+- **Field pilot Nextipac** (jun 2026, 100 ha aguacate Hass): usa stack
+  commercial actual (humidity, EC, ADS1115, T) — valida operacional y
+  comercial. Bridge state hasta v2 chip ready.
+- **Greenhouse pilot** (Q1-Q2 2027): usa 10 chips chipathon × 7-10
+  organismos puros + qPCR ground truth — valida científico y técnico.
+- Migration: 2028+ field nodes migran progressivamente a chip-based.
+
+### v1 priority strategy: modular spine
+Para reducir risk de bring-up, los 75+ requisitos del SPEC se etiquetarán
+con priority labels:
+- **P1 (must-work bring-up gate)**: IS path + ADC + SPI + VREF + bandgap
+- **P2 (firmware-debugged si borderline)**: humidity readout, EC, MUX,
+  auto-zero
+- **P3 (deferable a v1.1)**: power switches, clock export, IRQ aggregator
+
+Si bring-up reveals bugs en P2/P3, IS standalone permite greenhouse pilot
+y paper publishable.
+
+### Oomycete-specific science framing
+- Phytophthora **NO es hongo**. Es oomiceto (reino Stramenopiles).
+- Pared celular de **celulosa** (no quitina): firma dieléctrica diferenciable
+  en banda 30-100 kHz.
+- Hifas **coenocíticas** (sin septos): conducción intracelular continua.
+- **Sin ergosterol** en membranas (usa fucosterol): β-dispersion shift.
+- **Zoosporas móviles** post-wet event: smoking gun temporal para Stage 2.
+
+### Documentación creada en este sprint
+- `docs/research_program.md` — 3-stage formal framework
+- `docs/business_model.md` — vertical integration explained
+- `README.md` — reescrito con platform framing + 3-stage + dual-pilot
+- `v1-pico/MENTOR_BRIEFING.md` — reescrito con mature pitch para mentor
+  matching de hoy
+
 ## 2026-05-07 — Repo split & PDK reality alignment
 
 ### Repository

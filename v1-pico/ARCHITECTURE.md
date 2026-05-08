@@ -4,6 +4,19 @@
 
 This document explains **HOW** the chip achieves what `SPEC_FROZEN.md` requires.
 
+> ⚠️ **2026-05-08 Note**: Algunos detalles abajo (especialmente Sección 4 sobre dual voltage 1.8V/3.3V, Sección 6.5 sobre QFN-40, Sección 7 power budget) reflejan asunciones del SPEC original. PDK reality post-validation:
+> - **Voltage**: 3.3V único (PDK GF180MCUD no soporta 1.8V cells nativos)
+> - **Padring**: workshop slot 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS)
+> - **Die**: 2935×2935 µm, core 2051×2051 µm
+>
+> Para framing estratégico actual (vertical integration, 3-stage research, dual-pilot), ver:
+> - [`../README.md`](../README.md)
+> - [`../docs/research_program.md`](../docs/research_program.md)
+> - [`../docs/business_model.md`](../docs/business_model.md)
+> - [`../CHANGELOG.md`](../CHANGELOG.md) (entry 2026-05-08)
+>
+> v1 implementation strategy: **modular spine** with priority labels — ver Sección 11 (NEW) al final de este doc.
+
 ---
 
 ## 1. System Context
@@ -498,18 +511,25 @@ Total IS time: ~18 ms (well under 100 ms spec)
 
 **Decision:** Internal RC acceptable. For DDS we derive from same clock, so frequencies are relative (ratio is accurate even if absolute is off).
 
-### 6.5 Why QFN-40 vs QFN-32
+### 6.5 Why workshop slot 88-pin vs smaller padring (UPDATED 2026-05-08)
 
-**Pro QFN-40:**
-- Allows 4 architectural exports (VREF, CLK, INT, switches)
-- Room for dedicated CS_MEM (FeRAM bridge)
-- Tamper input pin
-- Debug JTAG placeholder (even if not used in v1)
+**Original SPEC said QFN-40.** PDK reality: el workshop slot del chipathon es 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS). Esto es lo que se confirma como padring final.
+
+**Pro 88-pin workshop slot:**
+- Suficientes pads analog (60) para todas las consolidation features
+- 20 bidir digital para SPI + control + power switches + IRQ aggregator
+- 4 power domains separados (analog/digital × VDD/VSS) para low-noise design
+- Fits perfectly with vertical integration vision (chip exports muchas señales al ESP32)
 
 **Con:**
-- Slightly larger die, package cost +$0.30
+- Die más grande (2935×2935 µm vs ~2.7 mm² original) — pero core area suficiente (2051×2051 µm)
 
-**Decision:** QFN-40 enables platform-ready architecture.
+**Decision:** workshop slot 88-pin confirmed. Habilita platform-ready architecture sin compromise.
+
+Pin count budget post recortes:
+- 60 analog pads (IS electrodes + sensor inputs + VREF_OUT + analog controls)
+- 20 digital pads (SPI 4 + GPIO_SW 7 + INT 1 + 1Wire 1 + I2C 2 + clock 1 + reset 1 + spares 3)
+- Eliminados: EN_LDO, CS_MEM, PULSE_IN[1], TAMPER (muxed con GPIO_SW[1])
 
 ---
 
@@ -602,8 +622,102 @@ In practice: self-discharge (~2%/month) is the floor. Battery life: **6-18 month
 - **OQ-003:** Do we need brown-out detection? Trade-off: area vs reliability.
 - **OQ-004:** Should scheduler support user-programmable wake periods, or fix to the 6 presets?
 - **OQ-005:** Add dedicated test pins for analog monitor during debug?
+- **OQ-006 (added 2026-05-07):** Frecuencias IS finales — recomendación pre-mentor 1k/30k/300k Hz vs SPEC original 1k/100k/1M Hz. Bio-band coverage matters.
+- **OQ-007 (added 2026-05-07):** DC offset cancellation strategy — auto-zero firmware vs hardware AC coupling. Suelo tiene 50-280 mV DC offset típico.
+- **OQ-008 (added 2026-05-07):** T-correction on-chip vs VPS — REQ-PR-001 lineal Q8.8 no captura Debye/Arrhenius. Punt to VPS.
+- **OQ-009 (added 2026-05-07):** VREF_OUT buffer strategy — 0.05% precisión exportada requiere buffer dedicado + compensación externa.
 
-These get resolved in mentor meeting post-2026-05-01.
+Estos se resuelven en mentor meetings post 2026-05-08 (chipathon kickoff).
+
+---
+
+## 11. Modular spine + Stage priority strategy (NEW 2026-05-08)
+
+Para reducir risk de bring-up y alinear con el [3-stage research program](../docs/research_program.md), los bloques del chip se organizan en **3 priority tiers**:
+
+### Priority 1 (P1) — Must-work bring-up gate
+
+Si estos blocks fallan, NO hay paper. NO hay greenhouse pilot. Recovery requires v1.1 MPW ($15k+).
+
+- **IS path completo**: DDS → DAC → Buffer → TIA → Mixer I/Q → LPF
+- **ADC 14-bit SAR** (single channel, sin MUX por ahora)
+- **SPI slave** + register bank
+- **VREF + bandgap reference** (interno, sin export todavía)
+- **POR + reset distribution**
+- **CLK_MAIN RC oscillator** + sleep clock
+
+**Validación por bloque**: cada P1 block tiene test mode standalone via SPI, accesible para debug en bring-up.
+
+### Priority 2 (P2) — Firmware-debugged si borderline
+
+Si estos blocks tienen issues menores, podemos compensar en firmware ESP32. Si fallan completamente, IS standalone sigue siendo útil.
+
+- **Humidity readout** (capacitive sensing × 3 channels)
+- **EC measurement** (DC injection + readout)
+- **ADC MUX 8-channel**
+- **Auto-zero / DC offset cancellation** (OQ-007 implementación)
+- **CRC16 hardware**
+- **Pulse counter** (EC probe)
+
+**Validación**: test individual via SPI command. Si humidity falla, greenhouse pilot puede usar commercial humidity sensor en parallel para Stage 1+2 work.
+
+### Priority 3 (P3) — Deferable a v1.1
+
+Estos son los exports/architectural features. Si fallan en v1, los nodos field siguen usando commercial counterparts hasta v1.1. NO bloquean el science work.
+
+- **GPIO_SW programmable power switches** (×7)
+- **CLK_OUT export buffer**
+- **INT aggregator**
+- **Tamper detection** (muxed con GPIO_SW[1])
+- **PUF chip ID** (nice for tracking, not critical)
+- **1-Wire master** (DS18B20 — backup is commercial T sensor)
+- **I2C bit-banged master** (ATECC608 bridge)
+
+### Mapping a Stage research program
+
+```
+Stage 1 (presence detection)    → P1 IS path + ADC suficiente. v1 chipathon ready.
+Stage 2 (kingdom discrimination) → P1 IS path + firmware updates. v1 sufficient.
+Stage 3 (species ID)             → Requires v2 mask set con expanded freqs + SNR.
+```
+
+**Es decir, el chip v1 chipathon está específicamente diseñado para validar Stages 1 y 2 con high probability, no para Stage 3.**
+
+### Bring-up sequence (post-fab, Q1 2027)
+
+1. **Power-on test** (P1 power, POR, reset) → Day 1
+2. **SPI communication** (P1 SPI slave + register bank) → Day 1
+3. **VERSION register read** (validates digital core) → Day 1
+4. **Single-channel ADC test** (P1 ADC standalone) → Days 2-3
+5. **VREF measurement** (P1 bandgap accuracy) → Day 4
+6. **DDS + DAC test** (P1 IS excitation) → Days 5-7
+7. **TIA + mixer test** (P1 IS receive) → Days 8-10
+8. **Full IS measurement loop** (P1 end-to-end) → Days 11-14
+9. **P2 humidity readout** → Week 3
+10. **P2 EC + MUX** → Week 4
+11. **P3 exports** → Week 5+
+
+**If Day 14 has working IS path → greenhouse pilot can begin.** Anything else is bonus.
+
+### Lab instrument vs field sensor design philosophy
+
+Critical insight: el chip v1 va a **greenhouse research pilot, NO field deployment** directo. Esto cambia priorities:
+
+| Feature | Si fuera sensor de campo | Para v1 instrumento de lab |
+|---------|--------------------------|---------------------------|
+| Sleep current <1 µA | CRÍTICO | NICE-TO-HAVE (greenhouse has wall power) |
+| Field temp -20°C to +60°C | OBLIGATORIO | OPTIONAL (greenhouse 18-30°C) |
+| ESD robust pads | CRÍTICO | NORMAL |
+| 5-year reliability | OBLIGATORIO | NO RELEVANTE |
+| Compressed data output | NICE | **DELETE** — queremos raw |
+| Power gating sub-blocks | CRÍTICO | OPTIONAL |
+| **DDS programable wide-range** | NICE | **CRÍTICO** (sweep flexibility) |
+| **Raw I/Q export via SPI** | NICE | **CRÍTICO** (offline analysis) |
+| **Sample rate programmable** | NICE | **CRÍTICO** (event triggering) |
+| **Test pads accessible** | NICE | **CRÍTICO** (oscilloscope debug) |
+| **Phase precision <0.5°** | OPTIONAL | **CRÍTICO** (subtle bio signals) |
+
+**Esta priorización cambiará SPEC_FROZEN gradualmente** durante mayo-junio antes del Project Proposal Review.
 
 ---
 

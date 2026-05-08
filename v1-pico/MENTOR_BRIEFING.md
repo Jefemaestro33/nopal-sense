@@ -1,135 +1,213 @@
 # Mentor Briefing — Nopal-Sense v1
 
-**For:** PICO Chipathon 2026 mentor assignment (2026-05-01)
-**From:** Darell Plascencia — [Jefemaestro33](https://github.com/Jefemaestro33)
-**Reading time:** ~3 minutes
+**For:** PICO Chipathon 2026 mentor assignment
+**From:** Ernest Darell Zermeño Plascencia — [@Jefemaestro33](https://github.com/Jefemaestro33)
+**Reading time:** ~5 minutes
 
 ---
 
 ## TL;DR
 
-I'm designing a **mixed-signal sensor hub ASIC for agricultural IoT nodes** with impedance spectroscopy as the flagship capability. Target: direct detection of soil biofilms (Phytophthora cinnamomi) at <$10 USD per node.
+Diseñando **mixed-signal sensor platform ASIC** que reemplaza 5 sensores comerciales actuales (3× capacitive humidity + EC + ADS1115 + VREF + clock) y agrega **multi-freq impedance spectroscopy** (10-100 kHz) para detección de organismos hifales en suelo agrícola. NO discrete IS sensor — es plataforma consolidada.
 
-Previous chip experience: Tiny Tapeout digital chip (SKY130, passed precheck).
-This is my first mixed-signal design.
+**Vertical integration model**: Zafra-AgTech (mi startup AgTech, piloto operacional 100 ha aguacate Hass en Nextipac/Jalisco junio 2026) usa el chip internamente, no lo vende al mercado.
 
-**I need a mentor with analog/mixed-signal background.** Digital-only mentorship is insufficient for this design.
+**Greenhouse pilot Q1-Q2 2027** valida la apuesta científica con 10 chips × 7-10 organismos puros + qPCR ground truth.
+
+**Programa científico de 3 etapas escalonadas** (Stage 1 >90%, Stage 2 65-80%, Stage 3 30-50% probabilidades). Cada Stage tiene valor comercial independiente — Plan B en cada nivel.
+
+**Background**: Software/data engineering deep, **first mixed-signal chip**. Tiny Tapeout digital previo (SKY130, precheck PASS).
+
+**Necesito mentor con analog/mixed-signal background, idealmente lock-in detection / electrochemical impedance / biosensors.**
 
 ---
 
-## The Chip at a Glance
+## El chip en una mirada
 
-- **Process:** GF180MCU 180nm (IEEE-provided)
-- **Package:** QFN-40, ~2.7 mm²
-- **Flagship:** Impedance spectroscopy at 3 fixed frequencies (1 kHz, 100 kHz, 1 MHz)
-- **Consolidates:** 5 traditional sensors (EC probe + 3 capacitive moisture + signal conditioning) into 1 chip + passive probes
-- **Target power:** <1 µA sleep, <2 mA active
-- **Interface:** SPI slave to ESP32 host
+| Parámetro | Valor |
+|-----------|-------|
+| Proceso | GF180MCUD 180nm (open-source variant) |
+| Padring | Workshop slot 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS) |
+| Die | 2935 × 2935 µm |
+| Core | 2051 × 2051 µm |
+| Voltaje | **3.3V único** (con I/O HV 5V/6V capable) |
+| Flagship capability | IS multi-freq 1k/30k/300k Hz (recomendación, OQ-006 final) |
+| Consolidates | 5 sensores commerciales del nodo Zafra actual |
+| Exports | VREF precision, clock distrib, programmable power switches, IRQ aggregator |
+| Target power | <1 µA sleep, <2 mA active |
+| Interface host | SPI slave a ESP32 (hasta 10 MHz) |
+| Tape-out | ~Oct 2026 (post Final Chip Review 28 sept) |
 
-Full specification: [`SPEC_FROZEN.md`](./SPEC_FROZEN.md)
-Architecture rationale: [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+Full spec: [`SPEC_FROZEN.md`](./SPEC_FROZEN.md) — 75+ requirements
+Architecture: [`ARCHITECTURE.md`](./ARCHITECTURE.md)
 Pin assignment: [`PIN_ASSIGNMENT.md`](./PIN_ASSIGNMENT.md)
+Pre-mentor research program: [`../docs/research_program.md`](../docs/research_program.md)
 
 ---
 
-## Status (2026-04-18)
+## El contexto que importa
+
+### Zafra-AgTech (operational context)
+
+Tengo una empresa AgTech (Zafra-AgTech) con piloto operacional iniciando junio 2026 en 100 ha de aguacate Hass en Nextipac, Jalisco. Stack actual: ESP32 + LoRa + 3× capacitive humidity probes + EC probe + ADS1115 ADC + DS18B20. Funciona, pero **NO tiene impedance spectroscopy** — y ese es exactamente el canal que necesitamos para detectar Phytophthora cinnamomi (oomiceto causante de root rot, $100M+/año pérdidas en MX avocado).
+
+El chipathon chip Nopal-Sense **agrega esa capability** (IS) Y **consolida** la stack actual en un solo die. Reemplaza ~$50/nodo de BOM por chip $3 mature volume — eso es $380k-$1.9M/año savings a 10k-50k nodos solo de consolidation, antes de contar el valor de la nueva capability IS.
+
+### Por qué custom chip vs AD5940
+
+AD5940 (Analog Devices) hace IS commercial. ¿Por qué no lo usamos?
+
+- AD5940 limited a 4 frecuencias preset, bandwidth 200 kHz, sin DDS programable
+- AD5940 no maneja DC offset 50-280 mV típico en suelo crudo (sin AC coupling externo)
+- AD5940 ~1-3 mA active vs nuestro target <2 mA
+- AD5940 NO consolidates humedad cap + EC + ADC — son chips separados
+- AD5940 NO exports VREF + clock + power switches al resto del nodo
+
+Nuestro chip custom enables ambos:
+1. Stage 2 science (zoosporogenesis temporal detection en banda específica)
+2. BOM consolidation que AD5940 no puede dar
+
+### Vertical integration (no vendemos el chip)
+
+A diferencia de chip startup tradicional, Zafra-AgTech NO vende Nopal-Sense al mercado. Lo usa internamente como diferenciador del servicio AgTech (similar a Apple con M-series). Esto elimina ~$300-500k de NRE típico (sales, datasheet, customer support, qualification). Ver [`../docs/business_model.md`](../docs/business_model.md).
+
+---
+
+## El programa científico (3 etapas escalonadas)
+
+El chip va a un **greenhouse pilot Q1-Q2 2027**, NO a field deployment directo. 10 chips chipathon dedicados a 7-10 organismos puros + qPCR ground truth weekly. Approach escalonado:
+
+| Stage | Pregunta | Probabilidad | Lo que valida |
+|-------|----------|--------------|---------------|
+| **Stage 1** | ¿Hay organismo hifal vivo o no? (vs sterile soil) | **>90%** | β-dispersion en banda 10-100 kHz |
+| **Stage 2** | ¿Hongo (quitina) u oomiceto (celulosa)? | **65-80%** | Firma temporal de zoosporogenesis post-wet event |
+| **Stage 3** | ¿Especie específica? (P. cinnamomi vs P. infestans) | **30-50%** | ML supervised by qPCR (requiere v2 chip + dataset multi-año) |
+
+Cada Stage tiene valor comercial independiente ($1-2M/año MX | $30-60M/año | $15M premium). **Aún si Stage 3 nunca funciona, Stage 1+2 sostienen el negocio.** Esa es la disciplina de la apuesta.
+
+Mecanismo físico clave: oomicetos tienen **paredes celulares de celulosa** (vs quitina en hongos verdaderos) y producen **zoosporas móviles** después de wet events. Eso da firma temporal distinguible aunque steady-state fingerprinting falle.
+
+Ver [`../docs/research_program.md`](../docs/research_program.md) para diseño experimental detallado.
+
+---
+
+## Status (2026-05-08, kick-off day)
 
 ### ✅ Complete
 - System architecture + 3-layer design (silicon / firmware / VPS)
 - Frozen specification with 75+ numbered requirements
 - Register map (32 × 16-bit)
-- Pin assignment (QFN-40)
-- Block-level area estimates (total 2.64 mm², 30% margin)
+- Pin assignment (workshop slot 88-pin alignment)
+- Block-level area estimates
 - Power budget per block + per cycle
-- Python golden model (partial — see `sim/golden_model.py`)
+- Python golden model (1212 lines, 8/8 tests passing)
 - Business context + go-to-market plan (Zafra-AgTech piloto 2026)
-- Prior benchtop work: 416K+ soil sensor readings from field deployment
+- 416K+ soil sensor readings from prior commercial-stack field deployment
+- 3-stage research program formalizado
+- Dual-pilot strategy definido
+- Vertical integration model confirmed
 
 ### ⏳ In progress
-- Completing Python golden model (all blocks + Randles soil physics)
-- Test vector generation for cocotb
+- Cocotb testbench infrastructure + test vector generation
+- Greenhouse pilot logistics (cultures, qPCR partner, infrastructure)
+- v1 priority labeling (P1/P2/P3 modular spine)
 
 ### ❌ Pending (need mentor help)
-- Analog block design: TIA, mixer I/Q, DAC, bandgap reference
-- Mixed-signal verification flow
-- Layout strategy (analog/digital separation, guard rings)
-- Process corner analysis strategy
+- Analog block design: TIA topology, mixer I/Q, DAC, bandgap reference
+- DC offset cancellation strategy (auto-zero firmware vs hardware AC coupling — OQ-007)
+- VREF buffer PSRR strategy (OQ-009)
+- Mixed-signal verification flow (Spectre AMS or equivalent)
+- Layout strategy (analog/digital separation, guard rings, matching)
+- Process corner analysis priorities
 
 ---
 
 ## Track Selection
 
-- **Primary:** Track B — Circuits for Sensors
-- **Secondary:** Track D — AI/LLM-assisted Circuits (entire RTL co-designed with Claude)
+- **Primary:** Track B — Circuits for Sensors (because IS is electrochemical sensor + mixed-signal)
+- **Secondary:** Track D — AI/LLM-assisted Circuits (entire RTL co-designed with Claude AI)
 
 ---
 
 ## Specific Questions for Mentor
 
-### Analog design
-1. For the TIA with auto-ranging in 180nm, what topology do you recommend? (Shunt-feedback op-amp with FET-switched resistor ladder seems reasonable, but I have no prior experience.)
-2. Is 14-bit SAR ADC realistic in 180nm at 20 kSPS? What's the typical area budget and gotchas?
-3. For IS mixer: analog multiplier vs switching demodulator — which has better noise performance for our dynamic range?
-4. What's the minimum bandgap reference quality needed for 3% IS accuracy? PTAT-compensated CTAT?
+### Architecture & Topology
+1. Para TIA en 180nm con DC offset 50-280 mV en electrodos de suelo: ¿shunt-feedback con auto-zero chopping, o instrumentation amp con AC coupling capacitive? Tradeoffs?
+2. Mixer I/Q para lock-in detection: switching demodulator (Gilbert) vs analog multiplier — cuál tiene mejor noise floor para nuestro dynamic range (Z 100Ω–10MΩ)?
+3. Para 3% IS magnitude accuracy across DR: ¿14-bit SAR ADC alcanza, o necesito ΔΣ?
+4. Bandgap reference: ¿qué accuracy mínima para 0.05% PSRR del VREF_OUT exportado (OQ-009)?
 
 ### Verification
-5. What's your recommended cocotb + Spectre AMS flow? Any preferred setup?
-6. How many Monte Carlo runs are needed for sign-off in 180nm mixed-signal?
-7. Process corners to prioritize: TT, FF, SS, FS, SF — which are most critical for this design?
+5. ¿Recomendado cocotb + Spectre AMS flow específico? Setup público disponible que pueda copiar?
+6. Para mixed-signal 180nm: ¿100, 500, 1000 Monte Carlo runs de sign-off?
+7. Process corners priority: ¿FF/SS dominan o también FS/SF crítico para mi diseño?
 
-### Risk
-8. What's your gut check on timeline? Is this scope achievable for a first-time mixed-signal designer in 4 months with weekly mentorship?
-9. What's the single feature most likely to fail tape-out as I've scoped it?
-10. Should I scope down further before mentor assignment (drop to 2 IS frequencies, drop auto-range)?
+### Risk Management & Modular Strategy
+8. Mi v1 tiene 6+ analog blocks compartiendo bandgap + supply. ¿Estructurar en "modular spine" con priority labels (P1/P2/P3) reduce risk vs monolithic — o introduce más interface bugs?
+9. ¿Qué bloque tiene mayor probabilidad de fallar tape-out así como está scoped? (TIA con auto-range? Mixer? Multi-channel ADC compartido?)
+10. ¿Vale la pena scope down a 2 frecuencias IS y agregar la 3ra en v1.1, o las 3 son rentables en v1?
 
 ### Process specifics
-11. GF180MCU analog cells — are there good reference designs I should study first?
-12. Does GF180MCU PDK include reasonable verification IP, or should I budget time to build my own?
+11. GF180MCUD analog cells — ¿hay reference designs específicos del PDK que estudie primero (especialmente para TIA y bandgap)?
+12. ¿GF180MCUD PDK incluye verification IP razonable, o presupuesto tiempo para construir mío propio?
 
 ---
 
 ## What I Bring
 
-- **Domain expertise:** Bioinformatics + AgTech (operational precision agriculture system in Jalisco)
-- **Real sensor data:** 416K+ readings from field deployment (for algorithm validation)
-- **Software discipline:** Full backend, dashboard, Phytophthora scoring v3 in production
-- **Writing/communication:** Extensive documentation already drafted
-- **Time:** Full-time dedication June-August 2026; part-time May + Sept
-- **Prior silicon experience:** Tiny Tapeout digital chip, GDS generated, precheck passed
+- **Domain expertise**: AgTech operational + bioinformatics background
+- **Real sensor data**: 416K+ readings from prior Zafra-AgTech field deployment (using commercial sensors — el chip los va a reemplazar)
+- **Python golden model**: 1212 lines, bit-exact spec, 8/8 unit tests passing
+- **Software discipline**: Backend, dashboard, Phytophthora scoring v3 ya en producción
+- **Documentation discipline**: SPEC_FROZEN, ARCHITECTURE, ROADMAP, research_program, business_model — todos versionados
+- **Time commitment**: Full-time dedicación junio-octubre 2026; part-time mayo + post-tape-out
+- **Prior silicon experience**: Tiny Tapeout digital chip (SKY130, GDS generated, precheck PASS — separate repo `tt-nopal-demo`)
 
 ---
 
 ## What I Need from Mentor
 
-1. **Weekly 1-on-1 calls** (1 hour, preferably video + screen share)
-2. **Review of analog block designs** before layout
-3. **Mixed-signal verification guidance** (Spectre AMS or equivalent)
-4. **Reality check on scope** — willing to cut features to ship on time
-5. **Review of tape-out submission package**
+1. **Weekly 1-on-1 calls** (1 hour, video + screen share preferido)
+2. **Review de analog block designs** antes de layout commit
+3. **Mixed-signal verification guidance** (especialmente corner analysis methodology)
+4. **Reality check on scope** — willing to cut features if necesario para tape-out a tiempo
+5. **Review del tape-out submission package** pre-Sept 28 Final Chip Review
 
-I can work asynchronously outside weekly calls. I'm disciplined about preparing specific questions before each meeting.
+Trabajo asíncrono outside weekly calls. Disciplinado preparando preguntas específicas pre-meeting.
 
 ---
 
 ## Logistics
 
-- **Time zone:** Guadalajara, Mexico (UTC-6)
-- **Availability:** Flexible, can match mentor's schedule
-- **Preferred cadence:** Weekly 1h call + async messaging (Matrix / Discord / Slack / email)
-- **Language:** English or Spanish
-- **Contact:** via Matrix chipathon channel or GitHub [@Jefemaestro33](https://github.com/Jefemaestro33)
+- **Time zone:** Guadalajara, Mexico (UTC-6/-5 DST)
+- **Availability:** Flexible, match mentor's schedule
+- **Preferred cadence:** Weekly 1h call + async messaging (Discord chipathon channel / GitHub / email)
+- **Language:** English or Spanish (native)
+- **Contact:** via Discord chipathon o GitHub [@Jefemaestro33](https://github.com/Jefemaestro33)
 
 ---
 
-## Backup Plans (if mentor matching isn't ideal)
+## Backup Plans
 
-If assigned mentor is digital-only, I can:
-- Scope down to simpler sensor hub (drop IS to v2)
-- Partner with another team's mentor for analog reviews
-- Use pdk forums + community for analog questions
+Si assigned mentor es digital-only:
+- Scope down a simpler sensor hub (drop full IS to v2)
+- Partner con otro team's mentor para analog reviews
+- Use PDK forums + GF180MCUD community para analog questions
 
-But **prefer to preserve IS as flagship** — it's what makes this project uniquely valuable.
+Pero **prefiero preservar IS como flagship** — es lo que valida la apuesta científica de Zafra-AgTech y el moat real del producto.
 
 ---
 
-**One-line ask:** *Please assign a mentor who has taped out mixed-signal designs with on-chip ADCs and analog front-ends, ideally with biosensing or instrumentation background.*
+**One-line ask:** *Please assign a mentor con tape-out experience en mixed-signal con on-chip ADCs y analog front-ends, idealmente con biosensing o electrochemical impedance background.*
+
+---
+
+## Por qué este proyecto importa
+
+- **First Mexican chip del programa PICO** (programa global, ~5 personas en MX han taped-out independientemente)
+- **Operational use real** desde día 1 (no académico-only — Zafra deployment activo)
+- **Disciplined research program** con probability framings honestas, no hype
+- **Open-source bajo Apache 2.0** — chip design público, datos comerciales privados (clean IP boundary)
+- **Track D angle**: RTL completamente co-diseñado con Claude AI (case study LLM-assisted chip design real-world)
+
+Gracias por considerar este proyecto.
