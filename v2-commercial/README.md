@@ -109,20 +109,10 @@ Sin estas 5 condiciones, v2 se posterga — no tape-outamos por orgullo, tape-ou
 
 ## Modelo de negocio del chip v2
 
-### B2C (productores directos)
-- Nodo completo con chip v2: $25-30 USD BOM
-- Venta en paquete con servicio Zafra-AgTech
-- Sin costo upfront (revenue share del servicio)
+> Detalles operacionales del business model viven en repo privado del operador.
+> Notas conceptuales aquí son public-friendly framing.
 
-### B2B (licensing)
-- Otros agtech companies compran el chip
-- $8-12 USD/chip a volumen
-- Potencial: 100K-1M unidades/año si licencia a integradores
-
-### B2G (gobierno, investigación)
-- Universidades, centros de investigación, programas gubernamentales
-- Precio premium con soporte técnico
-- Demos de vigilancia fitosanitaria a nivel regional
+Operador (Zafra-AgTech) usa el chip internamente como componente diferenciador del servicio AgTech (vertical integration). Otros canales (B2B licensing, B2G research) son optionalmente exploran a discretion del operador post-validación.
 
 ---
 

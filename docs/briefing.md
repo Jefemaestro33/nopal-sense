@@ -389,11 +389,7 @@ de pines metálicos.
    14-bit, bandgap, LDOs) están todos dentro de las capacidades de 180nm. Área
    estimada: 1-3 mm² (target 3-4 mm² con margen).
 
-3. **Reducción de BOM y extensión de batería: directa.** Consolidar 6 chips
-   en 2 (Nopal-Sense + ESP32), reducir cables de 25-35 a 8-10, y duty-cycle el
-   IS a ~100 ms cada 15-30 minutos produce las mejoras de BOM (34-48%) y
-   batería (100-200×) que se afirman. Esto **no depende de ninguna hipótesis
-   biológica** — es ingeniería pura.
+3. **Reducción de BOM y extensión de batería: directa.** Consolidar múltiples chips commerciales en uno custom + reducir cables + duty-cycle agresivo del IS produce mejoras significativas de BOM y batería. Esto **no depende de ninguna hipótesis biológica** — es ingeniería pura. Las economics específicas son operacionales del operador y viven en repo privado.
 
 **Si solo Capa 1 funciona, el chip ya es exitoso.** Es el "fall-back con
 dignidad".
