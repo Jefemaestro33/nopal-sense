@@ -11,7 +11,7 @@ An Architecture Decision Record captures **why** a technical decision was made, 
 `ADR-NNN-topic.md`
 
 Examples:
-- `ADR-001-frequency-choice-1k-30k-300k.md` (resolves OQ-006)
+- `ADR-001-frequency-choice-10k-30k-100k.md` (resolves OQ-006)
 - `ADR-002-dc-offset-cancellation-firmware-autozero.md` (resolves OQ-007)
 - `ADR-003-tia-topology-shunt-feedback.md` (resolves OQ-001)
 - `ADR-004-padring-workshop-slot-88pin.md`

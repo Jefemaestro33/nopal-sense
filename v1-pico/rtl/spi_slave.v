@@ -95,17 +95,19 @@ module spi_slave #(
                     shift_in <= {shift_in[6:0], mosi_s};
                     bit_cnt  <= bit_cnt + 4'd1;
 
-                    // After 8 bits: process command byte
+                    // After 8 bits (the cmd byte): R/W bit + 5-bit address received.
+                    // At this point shift_in holds bits 7..1 of the cmd byte and
+                    // mosi_s is bit 0 (LSB of the address). We must concatenate
+                    // them; previously only shift_in[3:0] was used for writes,
+                    // which dropped the LSB of the address — fixed below.
                     if (bit_cnt == 4'd7 && !cmd_received) begin
                         cmd_received <= 1'b1;
                         data_phase   <= 1'b1;
-                        is_write     <= shift_in[6]; // bit 7 of byte = MSB shifted in first
-                        reg_addr     <= shift_in[ADDR_W-2:0]; // bits [4:0] of the byte
+                        is_write     <= shift_in[6]; // R/W bit = bit 7 of cmd byte
+                        reg_addr     <= {shift_in[ADDR_W-2:0], mosi_s}; // full 5-bit addr
 
-                        // For reads: latch reg_rdata into shift_out now
-                        if (!shift_in[6]) begin // read
+                        if (!shift_in[6]) begin // read: pulse reg_rd so reg_bank latches
                             reg_rd   <= 1'b1;
-                            reg_addr <= {shift_in[ADDR_W-2:0], mosi_s}; // include the last bit
                         end
                     end
 

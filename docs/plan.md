@@ -135,7 +135,7 @@ ADS1115 externo + signal conditioning en **un solo die** + sondas pasivas.
 **Por qué es certera:**
 - Precedentes: 2022 Tennessee electrochemical water, ASIC bio-impedance
   Kassanos TSMC 0.18µm, AD5933/AD5940 comerciales
-- Física: las 3 bandas (1kHz / 100kHz / 1MHz) miden conductividad iónica /
+- Física: las 3 frecuencias bio-band (10 / 30 / 100 kHz) cubren el pico β-dispersion + transferencia de carga membrana — la zona donde aparecen las firmas eléctricas de actividad hifal /
   transferencia de carga / permitividad dieléctrica. Bien estudiada (Kelleners
   2009, Loewer 2017)
 - Significant BOM reduction per node + battery life extension (specific
@@ -216,7 +216,7 @@ Repo `open-silicon-mx`:
 - 17 documentos de research sobre la cadena de semiconductores y México
 - SPEC_FROZEN.md con 75+ requisitos numerados
 - ARCHITECTURE.md con design rationale por bloque
-- PIN_ASSIGNMENT.md con QFN-40 pinout (a actualizar a workshop slot)
+- PIN_ASSIGNMENT.md con workshop slot 88-pin pad map (reescrito 2026-05-13)
 - MENTOR_BRIEFING.md de 1 página
 - Golden model Python de 1,212 líneas con 8/8 tests pasando
 - Modelo Randles de física del suelo

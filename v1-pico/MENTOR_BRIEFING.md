@@ -31,12 +31,12 @@ Diseñando **mixed-signal sensor platform ASIC** que reemplaza múltiples sensor
 | Die | 2935 × 2935 µm |
 | Core | 2051 × 2051 µm |
 | Voltaje | **3.3V único** (con I/O HV 5V/6V capable) |
-| Flagship capability | IS multi-freq 1k/30k/300k Hz (recomendación, OQ-006 final) |
+| Flagship capability | IS multi-freq **10 kHz / 30 kHz / 100 kHz** (bio-band specialist; OQ-006 = B resuelto) |
 | Consolidates | 5 sensores commerciales del nodo Zafra actual |
 | Exports | VREF precision, clock distrib, programmable power switches, IRQ aggregator |
 | Target power | <1 µA sleep, <2 mA active |
 | Interface host | SPI slave a ESP32 (hasta 10 MHz) |
-| Tape-out | ~Oct 2026 (post Final Chip Review 28 sept) |
+| Tape-out | TBD ~Sept 2026 (post Final Chip Review 28 ago) |
 
 Full spec: [`SPEC_FROZEN.md`](./SPEC_FROZEN.md) — 75+ requirements
 Architecture: [`ARCHITECTURE.md`](./ARCHITECTURE.md)
@@ -131,7 +131,7 @@ Ver [`../docs/research_program.md`](../docs/research_program.md) para framework 
 
 ### Architecture & Topology
 1. Para TIA en 180nm con DC offset 50-280 mV en electrodos de suelo: ¿shunt-feedback con auto-zero chopping, o instrumentation amp con AC coupling capacitive? Tradeoffs?
-2. Mixer I/Q para lock-in detection: switching demodulator (Gilbert) vs analog multiplier — cuál tiene mejor noise floor para nuestro dynamic range (Z 100Ω–10MΩ)?
+2. Mixer I/Q para lock-in detection: switching demodulator (Gilbert) vs analog multiplier — cuál tiene mejor noise floor para nuestro dynamic range (Z 100Ω – 30kΩ a bio-band 10-100 kHz)?
 3. Para 3% IS magnitude accuracy across DR: ¿14-bit SAR ADC alcanza, o necesito ΔΣ?
 4. Bandgap reference: ¿qué accuracy mínima para 0.05% PSRR del VREF_OUT exportado (OQ-009)?
 

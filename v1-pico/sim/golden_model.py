@@ -198,7 +198,7 @@ class RandlesSoilModel:
 @dataclass
 class ISConfig:
     """Configuration for IS measurement (from registers)."""
-    frequencies_hz: tuple = (1e3, 1e5, 1e6)    # 1 kHz, 100 kHz, 1 MHz
+    frequencies_hz: tuple = (1e4, 3e4, 1e5)    # 10 kHz, 30 kHz, 100 kHz (bio-band, OQ-006=B)
     excitation_amplitude_v: float = 0.1        # 100 mVpp
     integration_cycles: int = 16                # Per frequency
     adc_bits: int = 14
@@ -456,12 +456,12 @@ class RegisterBank:
     H30_TEMP = 0x05
     EC_FREQ = 0x06
     BATTERY = 0x07
-    Z_MAG_1K = 0x08
-    Z_PHASE_1K = 0x09
-    Z_MAG_100K = 0x0A
-    Z_PHASE_100K = 0x0B
-    Z_MAG_1M = 0x0C
-    Z_PHASE_1M = 0x0D
+    Z_MAG_10K = 0x08
+    Z_PHASE_10K = 0x09
+    Z_MAG_30K = 0x0A
+    Z_PHASE_30K = 0x0B
+    Z_MAG_100K = 0x0C
+    Z_PHASE_100K = 0x0D
     CAL_A = 0x0E
     CAL_B = 0x0F
     CAL_ALPHA = 0x10
@@ -730,22 +730,22 @@ class NopalSenseChip:
         # IS measurement
         is_result = simulate_is_measurement(soil)
         self.regs.internal_write(
-            self.regs.Z_MAG_1K, is_result['z_mag_registers'][0]
+            self.regs.Z_MAG_10K, is_result['z_mag_registers'][0]
         )
         self.regs.internal_write(
-            self.regs.Z_PHASE_1K, is_result['z_phase_registers'][0]
+            self.regs.Z_PHASE_10K, is_result['z_phase_registers'][0]
         )
         self.regs.internal_write(
-            self.regs.Z_MAG_100K, is_result['z_mag_registers'][1]
+            self.regs.Z_MAG_30K, is_result['z_mag_registers'][1]
         )
         self.regs.internal_write(
-            self.regs.Z_PHASE_100K, is_result['z_phase_registers'][1]
+            self.regs.Z_PHASE_30K, is_result['z_phase_registers'][1]
         )
         self.regs.internal_write(
-            self.regs.Z_MAG_1M, is_result['z_mag_registers'][2]
+            self.regs.Z_MAG_100K, is_result['z_mag_registers'][2]
         )
         self.regs.internal_write(
-            self.regs.Z_PHASE_1M, is_result['z_phase_registers'][2]
+            self.regs.Z_PHASE_100K, is_result['z_phase_registers'][2]
         )
 
         # Evaluate alerts
@@ -892,23 +892,23 @@ def test_randles_physics():
     """Verify Randles model produces sensible impedances."""
     # Healthy soil
     soil_healthy = RandlesSoilModel(scenario_healthy_soil())
-    z_1k = soil_healthy.impedance(1e3)
-    z_1m = soil_healthy.impedance(1e6)
+    z_10k = soil_healthy.impedance(1e4)
+    z_100k = soil_healthy.impedance(1e5)
 
-    # At low frequency, impedance is higher (R_ct dominates)
-    # At high frequency, impedance is lower (bulk resistance)
-    assert abs(z_1k) > abs(z_1m), "Low freq should have higher |Z|"
+    # At low frequency in bio-band, impedance is higher (R_ct dominates)
+    # At high frequency, impedance is lower (bulk + parasitic capacitance)
+    assert abs(z_10k) > abs(z_100k), "Low freq should have higher |Z|"
 
     # Infected soil should have different R_ct
     soil_infected = RandlesSoilModel(scenario_infected_soil(0.7))
-    z_infected_100k = soil_infected.impedance(1e5)
-    z_healthy_100k = soil_healthy.impedance(1e5)
+    z_infected_30k = soil_infected.impedance(3e4)
+    z_healthy_30k = soil_healthy.impedance(3e4)
 
     # Infected soil has reduced R_ct → different impedance at mid freq
-    diff_pct = abs(z_infected_100k - z_healthy_100k) / abs(z_healthy_100k) * 100
+    diff_pct = abs(z_infected_30k - z_healthy_30k) / abs(z_healthy_30k) * 100
     assert diff_pct > 5, f"Infected vs healthy should differ >5%, got {diff_pct:.1f}%"
 
-    print(f"✓ Randles physics ({diff_pct:.1f}% diff at 100kHz)")
+    print(f"✓ Randles physics ({diff_pct:.1f}% diff at 30 kHz, bio-band peak)")
 
 
 def test_scheduler():
@@ -945,7 +945,7 @@ def test_full_pipeline():
     assert result['status'] & 0x0001  # ready
     assert result['status'] & 0x0008  # is_done
     # IS results should be populated
-    assert chip.regs.spi_read(RegisterBank.Z_MAG_1K) != 0
+    assert chip.regs.spi_read(RegisterBank.Z_MAG_10K) != 0
     print("✓ Full pipeline integration")
 
 
@@ -1101,7 +1101,7 @@ def is_demo():
     print("IS MEASUREMENT DEMO — Healthy vs Infected Soil")
     print("=" * 70)
     print()
-    print(f"{'Scenario':<30} {'f=1kHz':>15} {'f=100kHz':>15} {'f=1MHz':>15}")
+    print(f"{'Scenario':<30} {'f=10kHz':>15} {'f=30kHz':>15} {'f=100kHz':>15}")
     print(f"{'':30} {'|Z| (Ω)':>15} {'|Z| (Ω)':>15} {'|Z| (Ω)':>15}")
     print("-" * 90)
 
@@ -1122,7 +1122,7 @@ def is_demo():
 
     print()
     print("Observations:")
-    print("  - Healthy vs infected differs most at 100 kHz (charge transfer region)")
+    print("  - Healthy vs infected differs most at 30 kHz (β-dispersion peak for Andisol)")
     print("  - Biofilm reduces R_ct → lower |Z| at mid frequencies")
     print("  - This is the discriminatory signature the chip detects")
     print()

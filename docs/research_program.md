@@ -35,7 +35,7 @@ El approach es **escalonado** (sequential de-risking). Cada etapa:
 | Metabolismo activo | pH local alterado |
 | Biofilms en raíces | Interfaces dieléctricas |
 
-**Frecuencias relevantes** (recomendación pre-mentor, OQ-006): 1k Hz (anchor iónico/agua), 30k Hz (bio core), 300k Hz (transición dieléctrica/normalización).
+**Frecuencias finales** (OQ-006 resuelto 2026-05-13 → Opción B bio-centric): **10 kHz, 30 kHz, 100 kHz** — 3 puntos dentro de la banda β-dispersion (10-100 kHz) para permitir fit Cole-Cole multi-punto + clasificador ML multi-feature en zoosporogenesis temporal. EC, VWC, y temperatura siguen viniendo de sensores commerciales del nodo Zafra (el chip no replica vía IS; complementa).
 
 **Hardware suficiente**: v1 chipathon con las 3 frecuencias actuales. No requiere DDS programable wide-range.
 

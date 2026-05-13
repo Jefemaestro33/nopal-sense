@@ -1,196 +1,188 @@
 # Nopal-Sense v1 — Pin Assignment
 
-**Package:** QFN-40 (6×6 mm, 0.5 mm pitch, exposed die paddle)
-**Document:** Physical interface specification + PCB layout guidelines.
+**Padring:** Workshop slot 88-pin (chipathon 2026 oficial — fork de Mauricio Montanares sobre `wafer-space/gf180mcu-project-template`, slot `workshop`)
+**Die:** 2935 × 2935 µm
+**Core (active design area):** 2051 × 2051 µm (~4.2 mm²)
 
-This document defines how the chip electrically connects to the PCB and to external components.
-
----
-
-## 1. Package Specifications
-
-### 1.1 QFN-40 mechanical
-
-```
-              6.00 mm
-           ├─────────────┤
-           ╱──────────────╲      ┐
-          │  10       11   │     │
-          │   •       •    │     │
-          │                │     │
-          │     ┌──────┐   │     │
-          │     │      │   │   6.00 mm
-     9 •  │     │ DIE  │   │  • 12
-          │     │      │   │     │
-          │     └──────┘   │     │
-          │                │     │
-          │   •       •    │     │
-          │  40        20  │     │
-           ╲──────────────╱      ┘
-                  │
-                  │
-           ┌──────┴──────┐
-           │  Exposed    │
-           │  die pad    │  3.5 × 3.5 mm
-           │ (GND tie)   │
-           └─────────────┘
-```
-
-### 1.2 Key parameters
-
-| Parameter | Value |
-|-----------|-------|
-| Package type | QFN (Quad Flat No-leads) |
-| Pin count | 40 |
-| Body size | 6.0 × 6.0 mm |
-| Lead pitch | 0.5 mm |
-| Lead width | 0.25 mm |
-| Exposed pad | 3.5 × 3.5 mm (must tie to GND) |
-| Package height | 0.9 mm max |
-| Thermal resistance (θJA) | ~30°C/W (with pad soldered to GND plane) |
-| Weight | ~0.1 g |
-
-### 1.3 Pin numbering
-
-- Pin 1 marked with corner dot or pin indicator on top
-- Numbering: counterclockwise from pin 1
-- Top-left corner = pin 1 (when viewed from above)
-- Pins 1-10 on left, 11-20 on bottom, 21-30 on right, 31-40 on top
+This document specifies how Nopal-Sense lands on the chipathon workshop padring and the functional assignment of its 88 pads to the chip's signals.
 
 ---
 
-## 2. Pin Diagram (top view)
+## 1. Padring overview
+
+El padring del chipathon es **fijo y compartido** entre todos los participantes del Track B que usen `SLOT=workshop`. El `chip_top.sv` del padring wirea los pads a un `chip_core.sv` con port list inmutable. Tu chip va dentro de `chip_core.sv`.
+
+### 1.1 Pad composition (per `src/slot_defines.svh` block `SLOT_WORKSHOP`)
+
+| Cell | Count | Function |
+|---|---|---|
+| `clk_pad` (`gf180mcu_fd_io__in_s`) | 1 | Schmitt-trigger CMOS clock input (dedicated) |
+| `rst_n_pad` (`gf180mcu_fd_io__in_c`) | 1 | Active-low reset input (dedicated) |
+| Input pads (`gf180mcu_fd_io__in_c`) | 1 | Spare CMOS input. Yosys zero-width-vector workaround; usable for 1 generic input |
+| Bidir pads (`gf180mcu_fd_io__bi_24t`) | 20 | 5V WR digital bidir, 24 mA drive, fast/slow slew, pull-up/down, CMOS/Schmitt select |
+| Analog pads (`gf180mcu_fd_io__asig_5p0`) | 60 | 5V WR analog signal pads, double diode ESD, 10 mA DC capability |
+| DVDD pads (`gf180mcu_ws_io__dvdd`) | 4 | Power supply, 60 mA DC each |
+| DVSS pads (`gf180mcu_ws_io__dvss`) | 4 | Ground, 60 mA DC each |
+| Corner cells (`gf180mcu_fd_io__cor`) | 4 | Inserted automatically by LibreLane |
+| **Total** | **88** + 4 corners | |
+
+### 1.2 Mechanical / physical
+
+- Die size: 2935 × 2935 µm (includes sealring)
+- Core area: 2051 × 2051 µm (`CORE_AREA: [442, 442, 2493, 2493]` in `slot_workshop.yaml`)
+- Pad pitch: 75 µm per pad cell (`asig_5p0` / `bi_24t` / `dvdd` / `dvss` / `in_s` / `in_c`)
+- Corner cells: 355 µm each
+- Per-side pad arithmetic: 25 pads × 75 µm + 2 corners × 355 µm = 2585 µm pads + 710 µm corners — die side 2935 µm gives ~350 µm filler slack per side (healthy margin)
+
+### 1.3 Pad ordering convention
+
+LibreLane reads `PAD_*` lists clockwise starting from the south-west corner:
 
 ```
-                 (TOP VIEW, looking down at package)
-
-                    ┌─────────────────────────┐
-                    │   31  32  33  34  35    │
-                    │   ▲    ▲   ▲   ▲   ▲    │
-                    │                         │
-      10 ◀──────────┤                         ├──────────▶ 36
-       9 ◀──────────┤                         ├──────────▶ 37
-       8 ◀──────────┤                         ├──────────▶ 38
-       7 ◀──────────┤     Nopal-Sense v1      ├──────────▶ 39
-       6 ◀──────────┤         QFN-40          ├──────────▶ 40
-       5 ◀──────────┤       GF180MCU          ├──────────▶  1
-       4 ◀──────────┤                         ├──────────▶  2
-       3 ◀──────────┤                         ├──────────▶  3
-       2 ◀──────────┤                         ├──────────▶  4
-       1 ◀──────────┤                         ├──────────▶  5
-                    │                         │
-                    │   ▼    ▼   ▼   ▼   ▼    │
-                    │   20  19  18  17  16    │
-                    └─────────────────────────┘
-
-    (Visual is schematic; actual pin layout goes clockwise
-     around perimeter, with pin 1 at top-left corner marker)
+         PAD_NORTH (entries read E -> W in YAML)
+         * -------------------- *
+         |                      |
+  PAD_   |                      |   PAD_
+  WEST   |      chip_core       |   EAST
+  (N->S) |                      |  (S->N)
+         |                      |
+         * -------------------- *
+         PAD_SOUTH (entries read W -> E in YAML)
 ```
 
 ---
 
-## 3. Complete Pin Table
+## 2. `chip_core.sv` port contract (workshop slot)
 
-### 3.1 Pin-by-pin specification
+Inmutable. Tu RTL debe respetar exactamente esta signature:
 
-| Pin | Name | Type | Direction | Voltage domain | Drive / Load | Function |
-|-----|------|------|-----------|----------------|--------------|----------|
-| 1 | VDD_A | Power | In | 3.3V | 50 mA max | Analog supply |
-| 2 | VREF_OUT | Analog | Out | 3.3V | 1 mA | 🎁 Precision reference (1.2V ±0.05%) |
-| 3 | CLK_OUT | Digital | Out | 3.3V CMOS | 4 mA | 🎁 Clock output (1 MHz) |
-| 4 | VDD_D | Power | In | 1.8V | 20 mA max | Digital core supply (external LDO) |
-| 5 | GND_D | Ground | — | 0V | — | Digital ground |
-| 6 | MOSI_S | Digital | In | 3.3V CMOS | — | SPI slave — data in (from ESP32) |
-| 7 | MISO_S | Digital | Out | 3.3V CMOS | 4 mA | SPI slave — data out (to ESP32) |
-| 8 | SCK_S | Digital | In | 3.3V CMOS | — | SPI slave — clock (from ESP32) |
-| 9 | CS_S | Digital | In | 3.3V CMOS, active low | — | SPI slave — chip select |
-| 10 | INT_OUT | Digital | Out | 3.3V CMOS, active low | 8 mA | 🎁 Interrupt aggregator (wakes ESP32) |
-| 11 | RST_N | Digital | In | 3.3V CMOS, active low | Schmitt trigger, pull-up 100kΩ | External reset |
-| 12 | OWIRE | Digital | Bidir, open-drain | 3.3V | 12 mA sink | 1-Wire master (DS18B20 + DS28E07) |
-| 13 | I2C_SDA | Digital | Bidir, open-drain | 3.3V | 4 mA sink | Bit-banged I2C data (ATECC608) |
-| 14 | I2C_SCL | Digital | Out, open-drain | 3.3V | 4 mA sink | Bit-banged I2C clock |
-| 15 | MOSI | Digital | Out | 3.3V CMOS | 4 mA | SPI master data out (FeRAM) |
-| 16 | MISO | Digital | In | 3.3V CMOS | — | SPI master data in |
-| 17 | SCK | Digital | Out | 3.3V CMOS | 4 mA | SPI master clock |
-| 18 | CS_MEM | Digital | Out, active low | 3.3V CMOS | 4 mA | Chip select for external FeRAM |
-| 19 | TAMPER | Digital | In | 3.3V CMOS | Schmitt trigger, pull-up | Tamper detection (reed switch) |
-| 20 | EN_LDO | Digital | Out | 3.3V CMOS | 4 mA | Enable pin for external 1.8V LDO |
-| 21 | GPIO_SW[1] | Digital | Out | 3.3V | 50 mA sink/source | 🎁 Power switch for external sensor |
-| 22 | GPIO_SW[2] | Digital | Out | 3.3V | 50 mA sink/source | 🎁 Power switch |
-| 23 | GPIO_SW[3] | Digital | Out | 3.3V | 50 mA sink/source | 🎁 Power switch |
-| 24 | GPIO_SW[4] | Digital | Out | 3.3V | 50 mA sink/source | 🎁 Power switch |
-| 25 | GPIO_SW[5] | Digital | Out | 3.3V | 50 mA sink/source | 🎁 Power switch |
-| 26 | GPIO_SW[6] | Digital | Out | 3.3V | 50 mA sink/source | 🎁 Power switch |
-| 27 | GPIO_SW[7] | Digital | Out | 3.3V | 50 mA sink/source | 🎁 Power switch |
-| 28 | PULSE_IN[0] | Digital | In | 3.3V CMOS | Schmitt trigger | Pulse counter (EC probe) |
-| 29 | PULSE_IN[1] | Digital | In | 3.3V CMOS | Schmitt trigger | Pulse counter (rain/wind) |
-| 30 | ADC_IN[7] | Analog | In | 0-3.3V | High-Z (>10 MΩ) | ADC channel 7 |
-| 31 | ADC_IN[6] | Analog | In | 0-3.3V | High-Z | ADC channel 6 |
-| 32 | ADC_IN[5] | Analog | In | 0-3.3V | High-Z | ADC channel 5 |
-| 33 | ADC_IN[4] | Analog | In | 0-3.3V | High-Z | ADC channel 4 |
-| 34 | ADC_IN[3] | Analog | In | 0-3.3V | High-Z | ADC channel 3 |
-| 35 | ADC_IN[2] | Analog | In | 0-3.3V | High-Z | ADC channel 2 |
-| 36 | ADC_IN[1] | Analog | In | 0-3.3V | High-Z | ADC channel 1 |
-| 37 | ADC_IN[0] | Analog | In | 0-3.3V | High-Z | ADC channel 0 |
-| 38 | ELEC_B | Analog | Bidir | 0-3.3V | Sense input | IS electrode B (sense) |
-| 39 | ELEC_A | Analog | Bidir | 0-3.3V | Drive output, 10 mA | IS electrode A (drive) |
-| 40 | GND_A | Ground | — | 0V | — | Analog ground |
-| EP | GND (exposed pad) | Ground | — | 0V | — | Thermal + primary GND |
+```verilog
+module chip_core #(
+    parameter NUM_INPUT_PADS,    // = 1 for workshop slot
+    parameter NUM_BIDIR_PADS,    // = 20
+    parameter NUM_ANALOG_PADS    // = 60
+)(
+    `ifdef USE_POWER_PINS
+    inout  wire VDD,
+    inout  wire VSS,
+    `endif
 
-### 3.2 Pin summary by category
+    input  wire clk,                                  // del clk_pad dedicado
+    input  wire rst_n,                                // del rst_n_pad dedicado (active-low)
+    input  wire [NUM_INPUT_PADS-1:0]  input_in,       // 1 spare CMOS input
+    output wire [NUM_INPUT_PADS-1:0]  input_pu,       // tie to '0
+    output wire [NUM_INPUT_PADS-1:0]  input_pd,       // tie to '0
+    input  wire [NUM_BIDIR_PADS-1:0]  bidir_in,       // 20 bidir inputs
+    output wire [NUM_BIDIR_PADS-1:0]  bidir_out,      // 20 bidir outputs
+    output wire [NUM_BIDIR_PADS-1:0]  bidir_oe,       // output enable per pad
+    output wire [NUM_BIDIR_PADS-1:0]  bidir_cs,       // CMOS (0) / Schmitt (1) input
+    output wire [NUM_BIDIR_PADS-1:0]  bidir_sl,       // fast (0) / slow (1) slew
+    output wire [NUM_BIDIR_PADS-1:0]  bidir_ie,       // input enable (tie ~oe)
+    output wire [NUM_BIDIR_PADS-1:0]  bidir_pu,       // pull-up enable per pad
+    output wire [NUM_BIDIR_PADS-1:0]  bidir_pd,       // pull-down enable per pad
+    inout  wire [NUM_ANALOG_PADS-1:0] analog          // 60 analog pads (5V WR)
+);
+```
 
-| Category | Count | Pins |
-|----------|-------|------|
-| Power / Ground | 4 | VDD_A, GND_A, VDD_D, GND_D |
-| Exposed paddle (GND) | 1 | EP |
-| SPI slave (host) | 4 | MOSI_S, MISO_S, SCK_S, CS_S |
-| SPI master | 4 | MOSI, MISO, SCK, CS_MEM |
-| 1-Wire | 1 | OWIRE |
-| I2C (bit-bang) | 2 | I2C_SDA, I2C_SCL |
-| ADC analog inputs | 8 | ADC_IN[0..7] |
-| IS electrodes | 2 | ELEC_A, ELEC_B |
-| Pulse inputs | 2 | PULSE_IN[0..1] |
-| GPIO power switches (regalo) | 7 | GPIO_SW[1..7] |
-| Control / status | 4 | RST_N, INT_OUT, TAMPER, EN_LDO |
-| Architectural exports (regalos) | 2 | VREF_OUT, CLK_OUT |
-| **Total** | **40** | + exposed pad |
+### 2.1 Default-safe bidir pad controls
+
+Copia esto en `chip_core.sv` salvo razón para divergir:
+
+```verilog
+assign input_pu = '0;
+assign input_pd = '0;
+assign bidir_cs = '0;    // CMOS buffer (not Schmitt) — default for most signals
+assign bidir_sl = '0;    // fast slew — default for SPI/digital comms
+assign bidir_pu = '0;    // no pull-up
+assign bidir_pd = '0;    // no pull-down
+assign bidir_ie = ~bidir_oe;  // input enable opposite to output enable
+// Drive bidir_oe per signal: 1 for chip-driven outputs, 0 for chip-sampled inputs.
+```
 
 ---
 
-## 4. Electrical Specifications
+## 3. Functional assignment for Nopal-Sense
+
+Mapeo lógico → pad físico para los 20 bidir + 60 analog del workshop slot. Pad ordering (clockwise) específico va en `slot_workshop.yaml`; aquí solo se documenta la asignación lógica.
+
+### 3.1 Digital bidir (20 pads disponibles)
+
+| bidir[N] | Signal | Direction | Function |
+|---|---|---|---|
+| 0 | `MOSI_S` | input | SPI slave data in (from ESP32) |
+| 1 | `MISO_S` | output | SPI slave data out (to ESP32) |
+| 2 | `SCK_S` | input | SPI slave clock |
+| 3 | `CS_S` | input, active-low | SPI slave chip select |
+| 4 | `INT_OUT` | output, active-low | 🎁 Interrupt aggregator (wakes ESP32) |
+| 5 | `CLK_OUT` | output | 🎁 Calibrated 1 MHz clock export to PCB |
+| 6-12 | `GPIO_SW[0..6]` | output | 🎁 7 programmable power switches (24 mA bidir drive) |
+| 13 | `OWIRE` | bidir, open-drain | 1-Wire master (DS18B20 + DS28E07 probe IDs) |
+| 14 | `I2C_SDA` | bidir, open-drain | Bit-banged I2C data (ATECC608 + other I2C sensors) |
+| 15 | `I2C_SCL` | output, open-drain | Bit-banged I2C clock |
+| 16 | `MOSI_M` | output | SPI master out (FeRAM external) |
+| 17 | `MISO_M` | input | SPI master in |
+| 18 | `SCK_M` / `CS_MEM` muxed | output | SPI master clock OR FeRAM CS (one register bit selects) |
+| 19 | `PULSE_IN` / `TAMPER` muxed | input | EC probe pulse counter OR tamper reed switch (mode bit selects) |
+
+**Trade-offs explícitos vs SPEC original QFN-40:**
+- `EN_LDO` eliminado (no hay LDO externo en arquitectura 3.3V única)
+- `CS_MEM` muxed con `SCK_M` (cuando hablas FeRAM, SCK_M y CS_MEM no son simultáneos en una transaction simple)
+- `PULSE_IN[1]` (rain/wind) eliminado a v2; solo EC pulse en v1
+- `TAMPER` muxed con `PULSE_IN[0]` (tamper input es estático, no contiende con counter rate)
+
+### 3.2 Analog (60 pads disponibles — sobrados)
+
+Active assignment (12 de 60 usados). 48 restantes libres para v1.1 / debug / test points.
+
+| analog[N] | Signal | Direction | Function |
+|---|---|---|---|
+| 0 | `ELEC_A` | bidir, drive | IS electrode A (excitation output, 10 mA cap) |
+| 1 | `ELEC_B` | bidir, sense | IS electrode B (sense input to TIA) |
+| 2 | `VREF_OUT` | output | 🎁 Bandgap 1.2V exported (±0.05% target) |
+| 3-10 | `ADC_IN[0..7]` | input | 8-channel external analog input MUX to internal ADC |
+| 11 | `TEST_VBG` | bidir | Test point for internal bandgap (bring-up) |
+| 12-59 | unassigned | — | Reserved for v1.1 / oscilloscope debug taps |
+
+### 3.3 Dedicated pads (not in bidir/analog count)
+
+| Pad | Signal | Function |
+|---|---|---|
+| `clk_pad` | `clk` | External 1 MHz clock input (Schmitt). Can also use internal RC if `clk` floats |
+| `rst_n_pad` | `rst_n` | External active-low reset |
+| `input[0]` | spare | Used for `SPI_DEBUG_EN` or tie to GND if unused |
+| DVDD × 4 | VDD | 3.3V supply (4 pads distributed around padring for IR drop) |
+| DVSS × 4 | GND | Ground (4 pads distributed) |
+
+---
+
+## 4. Electrical specifications
 
 ### 4.1 Absolute maximum ratings
 
-| Parameter | Min | Max | Unit |
-|-----------|-----|-----|------|
-| VDD_A | -0.3 | 3.6 | V |
-| VDD_D | -0.3 | 2.0 | V |
-| Voltage on any digital I/O | -0.3 | VDD_A + 0.3 | V |
-| Voltage on analog input | -0.3 | VDD_A + 0.3 | V |
-| Storage temperature | -40 | 85 | °C |
-| Junction temperature | — | 125 | °C |
-| ESD (HBM) | 2000 | — | V |
-| ESD (CDM) | 500 | — | V |
-| Latch-up current | 100 | — | mA |
-
-**Warning:** Exceeding these ratings may cause permanent damage. Operating near absolute max may reduce lifetime.
+| Parameter | Min | Max | Unit | Notes |
+|---|---|---|---|---|
+| VDD | -0.3 | 3.6 | V | Single rail; PDK gf180mcuD sin 1.8V std cells nativos |
+| Voltage on any digital I/O | -0.3 | 5.5 | V | I/O cells son 5V WR; tolerant a 5V externos |
+| Voltage on analog input | -0.3 | VDD + 0.3 | V | `asig_5p0` con double diode protection |
+| Storage temperature | -40 | 85 | °C | |
+| Junction temperature | — | 125 | °C | |
+| ESD (HBM) | 2000 | — | V | Per `asig_5p0` and `bi_24t` cell specs |
+| ESD (CDM) | 500 | — | V | |
+| Latch-up current | 100 | — | mA | JESD78 Class II Level A |
 
 ### 4.2 Recommended operating conditions
 
 | Parameter | Min | Typ | Max | Unit |
-|-----------|-----|-----|-----|------|
-| VDD_A | 3.00 | 3.30 | 3.60 | V |
-| VDD_D | 1.62 | 1.80 | 1.98 | V |
+|---|---|---|---|---|
+| VDD | 3.00 | 3.30 | 3.60 | V |
 | Operating temperature | -10 | 25 | 70 | °C |
-| Input low voltage (VIL) | — | — | 0.3 × VDD_A | V |
-| Input high voltage (VIH) | 0.7 × VDD_A | — | — | V |
-| Output low voltage (VOL) @ 4 mA | — | — | 0.4 | V |
-| Output high voltage (VOH) @ 4 mA | VDD_A - 0.4 | — | — | V |
+| Input low (VIL) digital | — | — | 0.3 × VDD | V |
+| Input high (VIH) digital | 0.7 × VDD | — | — | V |
 
-### 4.3 Current specifications
+### 4.3 Current per mode
 
 | Mode | Typical | Max |
-|------|---------|-----|
+|---|---|---|
 | DEEP_SLEEP | 0.5 µA | 3 µA |
 | NORMAL (active 300 ms) | 1.5 mA | 3 mA |
 | ALERT | 0.5 mA avg | 1 mA |
@@ -200,7 +192,7 @@ This document defines how the chip electrically connects to the PCB and to exter
 ### 4.4 I/O timing
 
 | Parameter | Min | Max | Notes |
-|-----------|-----|-----|-------|
+|---|---|---|---|
 | SPI slave clock | — | 10 MHz | Up to 10 MHz supported |
 | Setup time (MOSI to SCK) | 5 ns | — | |
 | Hold time (MOSI after SCK) | 5 ns | — | |
@@ -210,210 +202,68 @@ This document defines how the chip electrically connects to the PCB and to exter
 
 ---
 
-## 5. PCB Layout Guidelines
+## 5. PCB layout guidelines
+
+The padring of the chipathon shuttle is packaged by Channel Partner; the participant does not specify the package directly. For evaluation PCB design (Phase 5 bring-up Q1 2027):
 
 ### 5.1 Ground plane strategy
 
-```
-     ╔════════════════════════════════════════╗
-     ║   PCB TOP VIEW                         ║
-     ║                                        ║
-     ║   ┌────────────────┐                   ║
-     ║   │                │     DIGITAL       ║
-     ║   │  Nopal-Sense   │     (ESP32, LoRa) ║
-     ║   │  ASIC          │                   ║
-     ║   │                │                   ║
-     ║   └─┬────────────┬─┘                   ║
-     ║     │            │                     ║
-     ║     │            │                     ║
-     ║     │ ANALOG     │ IS probe            ║
-     ║     │ sensors    │ cable               ║
-     ║     │            │                     ║
-     ╚═════╪════════════╪═══════════════════╝
-           │            │
-           ▼            ▼
-       (stellar GND)   (separate analog GND,
-                        tied to digital GND
-                        at single point near
-                        chip's GND_A pin)
-```
-
-**Layout guidelines:**
-
-- **GL-001:** Single-point GND star topology, joined at chip's exposed pad
-- **GL-002:** Separate GND plane zones for digital and analog sides of PCB
-- **GL-003:** Exposed pad MUST be soldered to PCB GND for thermal + electrical
-- **GL-004:** Do not route signals UNDER the chip (use opposite layer)
+- **GL-001:** Single-point GND star topology — analog GND and digital GND join at one point on the PCB near the chip
+- **GL-002:** Separate GND plane zones for digital (ESP32, LoRa) and analog (probes, sensors) sides
+- **GL-003:** All DVSS pads tied to PCB GND with multiple vias
+- **GL-004:** Do not route signals under the chip footprint (use opposite layer)
 
 ### 5.2 Power decoupling
 
-| Pin | Required capacitors |
-|-----|---------------------|
-| VDD_A (pin 1) | 100 nF + 10 µF, close to pin |
-| VDD_D (pin 4) | 100 nF + 1 µF, close to pin |
-| VREF_OUT (pin 2) | 100 nF + 1 µF (low-ESR), output bypass |
-
-**GL-005:** Decoupling caps within 5 mm of respective VDD pin
-**GL-006:** Use X7R or C0G dielectric for accuracy (not Y5V)
+- **GL-005:** 100 nF + 10 µF per DVDD pad, within 5 mm
+- **GL-006:** Use X7R or C0G dielectric for accuracy (not Y5V)
+- **GL-007:** Bulk capacitance shared across DVDD pads, individual 100 nF per pad
 
 ### 5.3 Analog signal routing
 
-- **GL-007:** ELEC_A, ELEC_B traces: minimize length, use guard traces tied to GND_A
-- **GL-008:** ADC inputs: low-ESR RC filters (100 Ω + 100 nF) close to pins
-- **GL-009:** Avoid crossing digital signals under analog traces
-- **GL-010:** Keep IS electrode cable <2m to minimize parasitic capacitance
+- **GL-008:** `ELEC_A`, `ELEC_B` traces: minimize length; guard traces tied to analog GND
+- **GL-009:** ADC inputs: low-ESR RC filter (100 Ω + 100 nF) close to chip pad
+- **GL-010:** Avoid crossing digital signals under analog traces
+- **GL-011:** Keep IS electrode cable <2 m to minimize parasitic capacitance
 
 ### 5.4 Clock routing (CLK_OUT)
 
-- **GL-011:** CLK_OUT trace ≤50 mm, series termination (33 Ω)
-- **GL-012:** Do not fan out CLK_OUT to more than 2 loads without buffer
+- **GL-012:** `CLK_OUT` trace ≤50 mm with series termination (33 Ω)
+- **GL-013:** Do not fan out `CLK_OUT` to more than 2 loads without external buffer
 
 ### 5.5 Reset and power-up
 
-- **GL-013:** RST_N: 10 kΩ pull-up + 100 nF to GND (time constant ~1 ms)
-- **GL-014:** Power sequencing: VDD_A rises first, then VDD_D (or simultaneous OK)
-- **GL-015:** If using external LDO controlled by EN_LDO: add 10 µF output cap
+- **GL-014:** `rst_n` external pull-up 10 kΩ + 100 nF to GND (time constant ~1 ms)
+- **GL-015:** Power sequencing: VDD monotonic ramp, no inrush spikes during POR
 
 ### 5.6 ESD protection (external)
 
 For cables going outside the enclosure (sensor probes, electrodes):
 
-- **GL-016:** Add TVS diodes (e.g., SRV05-4) on cable entry
-- **GL-017:** Ferrite beads on power lines to sensors
-- **GL-018:** Internal chip ESD handles direct 2 kV HBM events, external TVS covers larger
+- **GL-016:** Add TVS diodes (e.g., SRV05-4) at cable entry
+- **GL-017:** Ferrite beads on power lines to external sensors
+- **GL-018:** Internal `asig_5p0` ESD handles 2 kV HBM; external TVS covers field transients
 
 ---
 
-## 6. Typical Application Circuit
+## 6. Bring-up reference (Phase 5, Q1 2027)
 
-```
-                  VDD_A (3.3V from LiFePO4 + LDO)
-                        │
-          ┌─────────────┼──────────────────────────┐
-          │             │                          │
-         10µF          100nF                       │
-          │             │                          │
-          │             │                          │
-         ─┴──           ├────────┐                 │
-        (GND_A)         │        │                 │
-                        │      [Chip Pin 1: VDD_A] │
-                        │                          │
-                        │                          │
-          ┌─────────────┴──Nopal-Sense v1──────┐   │
-          │                                    │   │
-          │  Pin 4 (VDD_D) ←── 1.8V            │   │
-          │                  from external LDO │   │
-          │                                    │   │
-          │  Pin 5 (GND_D) ──→ GND             │   │
-          │  Pin 40 (GND_A) ──→ GND            │   │
-          │  Exposed pad ──→ GND (via vias)    │   │
-          │                                    │   │
-          │  Pin 6-9 (SPI slave) ──→ ESP32     │   │
-          │  Pin 10 (INT_OUT)    ──→ ESP32     │   │
-          │  Pin 11 (RST_N)      ──→ ESP32     │   │
-          │                                    │   │
-          │  Pin 12 (OWIRE) ──→ DS18B20 + probe│   │
-          │                      ID chips      │   │
-          │                                    │   │
-          │  Pin 13-14 (I2C) ──→ ATECC608      │   │
-          │                                    │   │
-          │  Pin 18 (CS_MEM) ──→ external FeRAM│   │
-          │  Pin 15-17 (SPI master) ──→ FeRAM  │   │
-          │                                    │   │
-          │  Pin 19 (TAMPER) ──→ reed switch   │   │
-          │                                    │   │
-          │  Pin 21-27 (GPIO_SW) ──→ PMOS      │   │
-          │                        switches    │   │
-          │                        (external   │   │
-          │                         sensors    │   │
-          │                         power)     │   │
-          │                                    │   │
-          │  Pin 38-39 (ELEC_A/B) ──→ IS probe│   │
-          │                             (inox   │   │
-          │                              pines) │   │
-          │                                    │   │
-          └────────────────────────────────────┘
-```
+After chip arrival from Channel Partner:
+
+1. **Power-on test** — verify DVDD pads at 3.3V, sleep current <3 µA
+2. **VERSION register read** via SPI slave (`bidir[0..3]`) — expect 0x0100
+3. **Bandgap export check** — `VREF_OUT` on `analog[2]` should be 1.2V ±0.05%
+4. **CLK_OUT** on `bidir[5]` should be 1 MHz ±5%
+5. **ADC sanity** via `ADC_IN[0]` on `analog[3]` with known voltage reference
+6. **IS measurement loop** — drive `ELEC_A` (`analog[0]`), sense `ELEC_B` (`analog[1]`) against known impedances
 
 ---
 
-## 7. Bond Diagram (die to package)
+## See also
 
-The chip die is approximately 1.6 × 1.7 mm in GF180MCU (after pad ring).
-
-### 7.1 Pad placement guidelines
-
-- I/O pads around perimeter of die, 60 µm pitch (typical GF180 pad library)
-- Analog pads isolated on one side (e.g., south side of die)
-- Digital I/O on opposite sides
-- Power pads distributed on all 4 sides for IR drop mitigation
-- ESD protection cells per PDK standard
-
-### 7.2 Die-to-package bonding
-
-- Wire bonds: gold (standard for QFN)
-- Bond wire length: <2 mm typical
-- Downset: minimize (flat package)
-
----
-
-## 8. Thermal Considerations
-
-### 8.1 Power dissipation estimate
-
-Worst-case: DEBUG mode @ 12 mA × 3.3V = 39.6 mW.
-Typical: NORMAL mode average ~5 mW.
-
-### 8.2 Temperature rise
-
-With θJA ≈ 30°C/W:
-- At 40 mW: ΔT = 40 × 0.030 = 1.2°C above ambient
-- Negligible for this design.
-
-Exposed pad is primary thermal path. Ensure good solder joint.
-
----
-
-## 9. PCB Footprint
-
-### 9.1 Recommended pattern
-
-- QFN-40 6×6 mm 0.5 mm pitch — standard footprint
-- Pad size: 0.25 mm × 0.6 mm
-- Center thermal pad: 3.5 × 3.5 mm with 9-16 vias to inner GND layer
-- Solder mask opening: pad + 50 µm expansion
-- Stencil design: 80% coverage on thermal pad (avoid void from full solder)
-
-### 9.2 Reference layout files
-
-(To be generated in KiCad when PCB design starts for v1 node)
-
----
-
-## 10. Ordering & Availability
-
-### 10.1 Sample quantities (from PICO)
-
-- Chips fabricated: typically 10-40 dies per team (from GF180MCU shuttle)
-- Packaging: bare dies OR wire-bonded QFN (if PICO provides; otherwise external service)
-- Cost per chip to team: $0 (IEEE pays fabrication)
-
-### 10.2 Post-PICO availability
-
-For additional chips:
-- wafer.space in SKY130 (130nm): $7K USD for 1000 dies
-- ChipFoundry.io chipIgnite in SKY130: $14.95K for 100 QFN
-- Custom respin via wafer.space in GF180: similar cost
-
-For v2 commercial:
-- Target foundry: GF 130nm or IHP SG13G2 (BiCMOS open source)
-- Volume: 10K units minimum for cost effectiveness
-
----
-
-## See Also
-
-- [`SPEC_FROZEN.md`](./SPEC_FROZEN.md) — Functional requirements
-- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — Block-level design rationale
-- [`README.md`](./README.md) — Overview and context
-- GlobalFoundries GF180MCU Process Design Kit — [github.com/google/gf180mcu-pdk](https://github.com/google/gf180mcu-pdk)
+- `SPEC_FROZEN.md` — Functional requirements + register map
+- `ARCHITECTURE.md` — Block-level design rationale
+- `README.md` — Overview
+- Workshop slot upstream: [`resources/Integration/workshop_padring_librelane/`](https://github.com/sscs-ose/sscs-chipathon-2026/tree/main/resources/Integration/workshop_padring_librelane) in the chipathon repo
+- Slot anatomy walkthrough: [`examples/librelane_rtl2gds_gf180/00_slots_explained.ipynb`](https://github.com/sscs-ose/sscs-chipathon-2026/blob/main/examples/librelane_rtl2gds_gf180/00_slots_explained.ipynb)
+- Pad cells reference: [GF180MCU PDK IO library](https://gf180mcu-pdk.readthedocs.io/en/latest/IPs/IO/gf180mcu_fd_io/datasheet.html)

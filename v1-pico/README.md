@@ -1,6 +1,6 @@
 # Nopal-Sense v1 (PICO 2026)
 
-**Chip para PICO Chipathon 2026 — tape-out septiembre 2026, chips en mano enero 2027.**
+**Chip para PICO Chipathon 2026 — tape-out ~Sept 2026 (post Final Chip Review Aug 28), chips en mano ~ene 2027.**
 
 Filosofía: **Platform-ready, no minimum-viable.** v1 hace menos que v2, pero cada función diferida se apoya con bridges que hacen que v1 ya sea superior a cualquier nodo comercial.
 
@@ -10,13 +10,13 @@ Filosofía: **Platform-ready, no minimum-viable.** v1 hace menos que v2, pero ca
 
 | Parámetro | Valor |
 |-----------|-------|
-| Proceso | GlobalFoundries GF180MCU 180nm |
+| Proceso | GlobalFoundries gf180mcuD 180nm (variante D, open-source) |
 | Dominio | Mixed-signal (digital + analog) |
-| Package | QFN-40 |
-| Área estimada | ~2.7 mm² |
+| Padring | Workshop slot 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS) |
+| Die | 2935×2935 µm (core 2051×2051 µm, ~3-4 mm² active design area) |
 | Consumo sleep | <1 µA target |
 | Consumo activo (IS measurement) | <2 mA durante 100 ms |
-| Voltajes | 3.3V I/O analog, 1.8V core digital (LDO externo en v1) |
+| Voltaje | 3.3V único (PDK gf180mcuD sin 1.8V std cells nativos) |
 | Clock principal | 1 MHz RC oscillator calibrado (±5%) |
 | Clock sleep | 32 kHz ring oscillator (±30%, always-on) |
 | Interface host | SPI slave a ESP32 (hasta 10 MHz) |
@@ -41,7 +41,7 @@ Filosofía: **Platform-ready, no minimum-viable.** v1 hace menos que v2, pero ca
 
 | Bloque | Área | Función |
 |--------|------|---------|
-| DDS (3 frecuencias fijas: 1k, 100k, 1M Hz) | 0.15 mm² | Generador de sinusoidales digitales |
+| DDS (3 frecuencias fijas: 10k, 30k, 100k Hz) | 0.15 mm² | Generador de sinusoidales digitales bio-band |
 | DAC 10-bit | 0.20 mm² | Conversión a voltaje analógico |
 | Electrode buffer/driver | 0.10 mm² | Maneja impedancia variable del suelo |
 | TIA (Transimpedance Amplifier) con auto-range | 0.20 mm² | Convierte current → voltage |
@@ -70,70 +70,24 @@ Filosofía: **Platform-ready, no minimum-viable.** v1 hace menos que v2, pero ca
 | Scheduler básico (4 modos) | 0.03 mm² | Rutinas fijas pre-programadas |
 | Simple PUF (SRAM-based, 32-bit ID) | 0.03 mm² | Chip identity (sin fuzzy extractor) |
 
-### Grupo E: I/O (0.50 mm²)
+### Grupo E: I/O
 
-| Bloque | Área | Función |
-|--------|------|---------|
-| I/O pads QFN-40 (incl. ESD) | 0.50 mm² | Interfaz física con mundo externo |
+Padring proporcionado por el workshop slot del chipathon (no se cuenta en área de diseño activo). 88 pads + 4 corner cells. Ver `PIN_ASSIGNMENT.md` para el pad map detallado.
 
-### Total: 2.64 mm² (margen de 30% en área típica PICO 3-4 mm²)
+### Total estimado: ~3-4 mm² de diseño activo dentro del core 2051×2051 µm
 
 ---
 
-## Pin assignment (QFN-40)
+## Pin assignment (workshop slot 88-pin)
 
-```
-                          TOP VIEW
-                     ┌─────────────────┐
-           VDD_A  1 ─┤                 ├─ 40  GND_A
-         VREF_OUT 2 ─┤                 ├─ 39  ELEC_A (IS driver output)
-          CLK_OUT 3 ─┤                 ├─ 38  ELEC_B (IS sense input)
-         VDD_D(io) 4 ─┤                 ├─ 37  ADC_IN[0]
-           GND_D  5 ─┤                 ├─ 36  ADC_IN[1]
-          MOSI_S  6 ─┤                 ├─ 35  ADC_IN[2]
-          MISO_S  7 ─┤  Nopal-Sense v1 ├─ 34  ADC_IN[3]
-           SCK_S  8 ─┤   QFN-40        ├─ 33  ADC_IN[4]
-            CS_S  9 ─┤   GF180MCU      ├─ 32  ADC_IN[5]
-         INT_OUT 10 ─┤   180nm         ├─ 31  ADC_IN[6]
-          RST_N 11 ─┤                 ├─ 30  ADC_IN[7]
-         OWIRE  12 ─┤                 ├─ 29  PULSE_IN[0] (EC probe)
-        I2C_SDA 13 ─┤                 ├─ 28  PULSE_IN[1] (rain/wind)
-        I2C_SCL 14 ─┤                 ├─ 27  GPIO_SW[7]
-          MOSI 15 ─┤                 ├─ 26  GPIO_SW[6]
-          MISO 16 ─┤                 ├─ 25  GPIO_SW[5]
-           SCK 17 ─┤                 ├─ 24  GPIO_SW[4]
-        CS_MEM 18 ─┤                 ├─ 23  GPIO_SW[3]
-       TAMPER 19 ─┤                 ├─ 22  GPIO_SW[2]
-       EN_LDO 20 ─┤                 ├─ 21  GPIO_SW[1]
-                  └─────────────────┘
-                        (paddle = GND)
-```
+El padring del chipathon es fijo y wirea un `chip_top.sv` inmutable al `chip_core.sv` (donde va tu diseño). Los puertos del chip_core están parametrizados por `SLOT_WORKSHOP` en `src/slot_defines.svh`:
 
-### Descripción de pines
+- **clk + rst_n** — pads dedicados (no son parte de los 20 bidir)
+- **input_in[0]** — 1 input pad CMOS extra (workaround Yosys zero-width-vector)
+- **bidir[19:0]** — 20 pads bidireccionales (5V WR, 24 mA drive)
+- **analog[59:0]** — 60 pads analog (5V WR `asig_5p0`, double diode protection, 10 mA)
 
-| Pin | Nombre | Dirección | Función |
-|-----|--------|-----------|---------|
-| 1 | VDD_A | Power | 3.3V analog supply |
-| 2 | **VREF_OUT** | Analog out | **🎁 Regalo: precision reference para sensores externos** |
-| 3 | **CLK_OUT** | Digital out | **🎁 Regalo: clock 1 MHz de precisión para PCB** |
-| 4 | VDD_D | Power | 1.8V digital core (from external LDO) |
-| 5 | GND_D | Ground | Digital ground |
-| 6-9 | SPI_SLAVE | Bidirectional | SPI slave a ESP32 (MOSI, MISO, SCK, CS) |
-| 10 | **INT_OUT** | Digital out | **🎁 Regalo: interrupt aggregator** para ESP32 |
-| 11 | RST_N | Digital in | Reset activo-bajo |
-| 12 | OWIRE | Bidirectional | 1-Wire master (DS18B20 + DS28E07 IDs) |
-| 13-14 | I2C | Bidirectional | I2C bit-banged (bridge para I2C sensors) |
-| 15-17 | SPI_MASTER | Bidirectional | SPI a sensores/periferia externa |
-| 18 | CS_MEM | Digital out | Chip select dedicado para FeRAM externa (bridge) |
-| 19 | TAMPER | Digital in | Input para reed switch / tamper detection (bridge) |
-| 20 | EN_LDO | Digital out | Control de LDO externo (bridge) |
-| 21-27 | **GPIO_SW[7:1]** | Digital out | **🎁 7 switches configurables (power control sensores)** |
-| 28-29 | PULSE_IN[1:0] | Digital in | Contadores de pulso (EC, rain, wind) |
-| 30-37 | ADC_IN[7:0] | Analog in | 8 canales analógicos al MUX → ADC |
-| 38-39 | ELEC_A/B | Analog bidir | Electrodos IS (salida excitation, entrada sense) |
-| 40 | GND_A | Ground | Analog ground |
-
-**Pin count justificable:** 40 pines permiten los 4 regalos arquitectónicos + 8 canales ADC + 7 power switches. QFN-40 es estándar y barato.
+Cada pad bidir tiene 7 señales de control (oe/cs/sl/ie/pu/pd + in/out). Ver `PIN_ASSIGNMENT.md` para la asignación funcional concreta a los 20 bidir + 60 analog disponibles, y el `chip_core.sv` template del workshop slot.
 
 ---
 
@@ -178,13 +132,8 @@ Para cada función que cortamos del scope v1, hay un "bridge" que permite implem
 
 ### Bridge 8: Barrido IS completo (100 Hz – 10 MHz)
 - **v2 tendrá:** DDS programable con barrido fino
-- **v1 solución:** 3 frecuencias fijas (1k, 100k, 1M) + firmware interpola con modelo Randles
+- **v1 solución:** 3 frecuencias fijas (10k, 30k, 100k Hz) en bio-band + firmware interpola con modelo Cole-Cole en banda ajustada
 - **Resultado:** detección de biofilm demostrable; research limitado por 3 puntos
-
-### Bridge 9: LDO on-chip
-- **v2 tendrá:** LDOs integrados
-- **v1 solución:** pin EN_LDO controla LDO externo (TI TLV715 $0.50)
-- **Resultado:** gestión de power intelligent, +$0.50 BOM
 
 ### Bridge 10: JTAG debug
 - **v2 tendrá:** JTAG formal con boundary scan
@@ -309,7 +258,7 @@ Cada bloque se verifica contra el **golden model en Python** ([`./sim/golden_mod
 
 ---
 
-## Validación previa al tape-out (antes de septiembre 2026)
+## Validación previa al tape-out (antes de Final Chip Review Aug 28)
 
 Mini-protocolo para reducir riesgo:
 
@@ -333,7 +282,7 @@ Mini-protocolo para reducir riesgo:
 ## Criterios de éxito
 
 ### Técnicos
-- [ ] Tape-out entregado a tiempo (septiembre 2026)
+- [ ] Tape-out entregado a tiempo (~Sept 2026, post FCR Aug 28)
 - [ ] Chips recibidos y power-on (enero 2027)
 - [ ] SPI communication funcional
 - [ ] IS measurement produce datos interpretables
@@ -357,7 +306,7 @@ Pre-mayo 2026:
 - [ ] `SPEC_FROZEN.md` — Especificación congelada formal
 - [ ] `ARCHITECTURE.md` — Block diagram + data flow + timing
 - [ ] `GOLDEN_MODEL.md` — Documentación del modelo Python
-- [ ] `PIN_ASSIGNMENT.md` — Pinout detallado QFN-40
+- [ ] `PIN_ASSIGNMENT.md` — Pad map workshop slot 88-pin
 - [ ] `POWER_BUDGET.xlsx` — Consumo estimado por modo
 - [ ] `AREA_BUDGET.xlsx` — Área estimada por bloque
 

@@ -8,14 +8,7 @@
 
 This document is the **operational manual** for executing Nopal-Sense v1 from spec to **greenhouse-validated science** (Q2 2027) and paper submission (July 2027). It consolidates phase-by-phase deliverables, gates of decision, the history of decisions already taken, and active risks with mitigation owners.
 
-> ⚠️ **2026-05-08 Note**: Algunas fechas y referencias (especialmente PICO onboarding "1 may", QFN-40, 1.8V dual voltage) reflejan asunciones del SPEC original. Realidad post-validation:
-> - **Kickoff fue 8 may 2026** (Boris Murmann + Mehdi Saligane), no 1 may
-> - **Padring**: workshop slot 88-pin, no QFN-40
-> - **Voltaje**: 3.3V único, no dual 1.8V/3.3V
-> - **Tape-out**: ~oct 2026 (post Final Chip Review 28 sept), no 30 sept
-> - **Phase 7**: greenhouse pilot (validar science con chips chipathon), NO field deployment directo. Field continúa con commercial sensor stack hasta v2 chip ready (2029-2030).
->
-> Para framing estratégico actual, ver [`../README.md`](../README.md), [`../docs/research_program.md`](../docs/research_program.md), [`../docs/business_model.md`](../docs/business_model.md), y [`../CHANGELOG.md`](../CHANGELOG.md) (entry 2026-05-08).
+> 📝 **2026-05-13 Note**: Documento reconciliado post-PDK-validation. Kickoff fue 8 may, padring es workshop slot 88-pin, voltage 3.3V único, Final Chip Review = 28 ago (no 28 sept), Final Submission TBD ~Sept 2026. Phase 7 reframeada a greenhouse pilot (no field deployment directo). Ver `../CHANGELOG.md` para historial.
 
 ---
 
@@ -120,7 +113,7 @@ This document is the **operational manual** for executing Nopal-Sense v1 from sp
 - [ ] Mentor review of topology before committing
 
 #### Week 7-8 (Jun 15-28): TIA (Transimpedance Amplifier)
-- [ ] Design TIA with programmable gain (6 levels: 1x, 10x, 100x, 1k, 10k, 100k)
+- [ ] Design TIA with programmable gain (**3 levels: 1×, 10×, 100×**, matched to 100Ω-30kΩ range at bio-band freqs)
 - [ ] Auto-range state machine (digital side) coordinated with analog
 - [ ] Noise analysis; target: input-referred noise < 1 µV/√Hz
 - [ ] Monte Carlo 100 runs
@@ -143,7 +136,7 @@ This document is the **operational manual** for executing Nopal-Sense v1 from sp
 - ✅ Monte Carlo 100 runs: no spec violations in ±3σ
 - ✅ Mentor sign-off on analog schematics
 
-**If Gate 2 fails:** Likely TIA (first-time analog for designer). Mitigation: drop auto-range complexity to 3 gain levels instead of 6, or use a simpler shunt-feedback op-amp topology.
+**If Gate 2 fails:** Likely TIA (first-time analog for designer). Mitigation already applied (2026-05-13): scope is 3 gain levels (not 6) and shunt-feedback topology baseline. Further degrade only if necessary: fixed single-gain at 10× (covers 1-10 kΩ range, most common Andisol case).
 
 ---
 
@@ -182,7 +175,7 @@ This document is the **operational manual** for executing Nopal-Sense v1 from sp
 
 ---
 
-### Phase 4 — Layout + Tape-out (2026-08-15 to 2026-09-30)
+### Phase 4 — Layout + Tape-out (2026-07-24 to 2026-08-28 + TBD final submission)
 
 **Purpose:** Transform verified schematics into physical chip layout ready for fabrication.
 
@@ -208,9 +201,9 @@ This document is the **operational manual** for executing Nopal-Sense v1 from sp
 - [ ] Final GDS generated
 - [ ] PICO submission package: GDS + documentation + bondmap + test plan
 - [ ] Submit to GlobalFoundries shuttle via PICO Chipathon
-- [ ] **TAPE-OUT: ≤ 2026-09-30**
+- [ ] **Final Chip Review: 2026-08-28** · **TAPE-OUT Final Submission: TBD ~Sept 2026**
 
-#### 🚪 Gate 4 Criteria (must pass by 2026-09-30)
+#### 🚪 Gate 4 Criteria (must pass by Final Chip Review 2026-08-28; final submission TBD ~Sept)
 - ✅ DRC clean
 - ✅ LVS clean
 - ✅ Antenna clean
@@ -243,7 +236,7 @@ This document is the **operational manual** for executing Nopal-Sense v1 from sp
 - [ ] FPGA validation: upload RTL to iCE40 or Cyclone, verify in hardware
 
 #### Month 3 (December 2026): Measurement setup + packaging
-- [ ] Research packaging options (QFN-40 wire-bonding service)
+- [ ] Confirm packaging path (Channel Partner handles per shuttle; no QFN-40 service needed since workshop slot already packaged)
 - [ ] Contact packaging vendor; prepare bondmap
 - [ ] Set up lab measurement station:
   - [ ] Oscilloscope with precision probes
@@ -291,7 +284,7 @@ This document is the **operational manual** for executing Nopal-Sense v1 from sp
 #### Week 4: IS measurement
 - [ ] Connect electrodes to ELEC_A / ELEC_B pins
 - [ ] Dip in test impedance (100 Ω, 1 kΩ, 10 kΩ resistors)
-- [ ] Validate Z-magnitude at 1 kHz, 100 kHz, 1 MHz
+- [ ] Validate Z-magnitude at 10 kHz, 30 kHz, 100 kHz
 - [ ] Expect within spec ±3% magnitude, ±2° phase
 - [ ] If fails: characterize error pattern for possible respin
 
@@ -395,12 +388,14 @@ Historical record of decisions made, with rationale. Append as new decisions eme
 | 2026-04-18 | Pivot from 14-module digital to mixed-signal with IS flagship | Digital-only duplicated MCU capabilities; IS is silicon-only capability | Completely changed architecture |
 | 2026-04-18 | IS (not Phytophthora scoring) as flagship | Scoring needs to iterate with real data; locking in silicon is error | Scoring stays in VPS |
 | 2026-04-18 | Platform-ready philosophy (v1 with bridges, not minimum viable) | v1 must be deployable immediately; every cut feature has external bridge | More complex v1 but scalable |
-| 2026-04-18 | 3 fixed frequencies (1k, 100k, 1M Hz) for IS, not programmable sweep | Programmable is v2 risk; 3 points cover regime transitions | Simpler DDS, less area |
+| 2026-04-18 | 3 fixed frequencies for IS, not programmable sweep | Programmable is v2 risk; 3 points cover regime transitions | Simpler DDS, less area |
+| 2026-05-13 | OQ-006 resuelto → **B: 10 / 30 / 100 kHz bio-centric** (vs A: 1k/100k/1M original; vs C: 1k/30k/300k hibrida) | 3 puntos en β-dispersion band permiten fit Cole-Cole + Stage 2 zoosporogenesis multi-feature. Rationale física: parasitic Z_C del cable+electrode (~500 pF) limita el rango medible a ~30 kΩ a 100 kHz, sin sentido extender freqs más arriba para suelo agrícola. | TIA range simplified a 100Ω-30kΩ con 3 gain levels |
+| 2026-05-13 | TIA range = 100 Ω – 30 kΩ con 3 gain levels (1×/10×/100×) | Match al freq band B (10-100 kHz). Parasitic capacitance del electrode ahoga señal arriba de 30 kΩ a 100 kHz. Lineage del Tennessee 2022 chip electroquímico que pasó comité PICO. | -1.5 mm² silicon vs 6-level + much lower design risk |
 | 2026-04-18 | 14-bit ADC (not 12 or 16) | 14-bit hits 3% IS accuracy target in 0.4 mm² | Balance area and precision |
 | 2026-04-18 | Shared ADC (IS + sensors, time-multiplexed) | Saves 0.4 mm² | Requires careful scheduling |
 | 2026-04-18 | Internal RC oscillator (not crystal) | No external crystal → smaller BOM; DDS freq accuracy is relative | ±5% absolute freq acceptable |
-| 2026-04-18 | QFN-40 (not QFN-32) | Enables 4 architectural exports (VREF, CLK, INT, switches) + tamper input | Slightly more area, much more platform |
-| 2026-04-18 | External LDO for 1.8V (not on-chip) | Reduces design risk; $0.50 external chip | Small BOM add |
+| 2026-04-18 | ~~QFN-40~~ → workshop slot 88-pin (overridden 2026-05-07) | PDK reality + Mauricio's vendored padring is the official 2026 shuttle target | Larger die but more analog pads + cleaner integration |
+| 2026-04-18 | ~~External LDO for 1.8V~~ → single 3.3V rail (overridden 2026-05-07) | PDK gf180mcuD no ships 1.8V std cells nativos | -1 BOM component, -2 design risk items |
 | 2026-04-18 | Simple PUF (no fuzzy extractor in v1) | Fuzzy extractor + ECC too complex for first chip | PUF only for ID, not crypto key |
 | 2026-04-18 | Dual clock domain (1 MHz main + 32 kHz sleep) | Sleep clock always-on for wake timer | Need CDC in 2 interfaces |
 | 2026-04-18 | Phytophthora v3 scoring stays in VPS | Algorithm must iterate; v4+ with real qPCR data | Chip does not run v3 |

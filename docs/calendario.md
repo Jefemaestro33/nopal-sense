@@ -21,7 +21,7 @@
 | 1: Setup & Introduction | 8 may – 29 may (Sem 19-22) | Tooling, tutoriales, presentación de tracks | IIC-OSIC-TOOLS funcional, MENTOR_BRIEFING actualizado |
 | 2: Team & Project Planning | 5 jun – 26 jun (Sem 23-26) | Formación de equipos, propuesta formal | **Project Proposal aprobada por mentor (12 jun)** |
 | 3: Design & Simulation | 3 jul – 17 jul (Sem 27-29) | Schematic + simulación pre-layout | **Pasar Go/No-go (17 jul) ⚠️ HITO CRÍTICO** |
-| 4: Layout & Verification | 24 jul – 28 sep (Sem 30-35) | Layout, DRC/LVS, integración, ESD, padframe | **GDS DRC-clean al Channel Partner** |
+| 4: Layout & Verification | 24 jul – 28 ago (Sem 30-35) | Layout, DRC/LVS, integración, ESD, padframe | **GDS DRC-clean al Channel Partner** |
 | 5: Manufacturing & Testing | post-tape-out (~ene 2027) | Bring-up, medición, paper IEEE | Paper submitted (jul 2027 workshop) |
 
 ---
@@ -43,10 +43,10 @@
 | 29 | Vie 17 jul | 👥 review | **Simulation Review (top) + Go/No-go** ⚠️ | All tracks | **Defiendes top-level** | Top-level sim + cierre Go/No-go |
 | 30 | Vie 24 jul | 🎓 lecture | Layout Tutorial | Mitch, Juan (DRC/LVS/PEX) | Oyente activo | Layout strategy de cada bloque |
 | 31 | Vie 31 jul | 📋 milestone | **DRC Dry-run #1 → Channel Partner** | — | **Mandas primera GDS** | GDS preliminar |
-| 32 | Vie 7 sep | 🎓 lecture | Integration Tutorial | Tim, Juan (padframe, ESD, packaging) | Oyente activo | Plan integración top |
-| 33 | Vie 14 sep | 👥 review | **Layout Review (blocks)** | All tracks | **Presentas layouts** | Layouts DRC-clean por bloque |
-| 34 | Vie 21 sep | 👥 review | **Layout Review (top) + DRC Dry-run #2** | All tracks | **Presentas top layout** | Top layout integrado |
-| 35 | Vie 28 sep | 👥 review | **Verification + Final Chip Review** | All tracks | **Defensa final** | Verification report + final layout |
+| 32 | Vie 7 ago | 🎓 lecture | Integration Tutorial | Tim, Juan (padframe, ESD, packaging) | Oyente activo | Plan integración top |
+| 33 | Vie 14 ago | 👥 review | **Layout Review (blocks)** | All tracks | **Presentas layouts** | Layouts DRC-clean por bloque |
+| 34 | Vie 21 ago | 👥 review | **Layout Review (top) + DRC Dry-run #2** | All tracks | **Presentas top layout** | Top layout integrado |
+| 35 | Vie 28 ago | 👥 review | **Verification + Final Chip Review** | All tracks | **Defensa final** | Verification report + final layout |
 | TBD | ~oct 2026 | 📋 milestone | **Final Submission** | — | Mandas GDS final | GDS DRC-clean firmado |
 | TBD | ~ene 2027 | 📋 milestone | Chips disponibles | — | Bring-up | Test setup, lab cookbook |
 | TBD | ~jul 2027 | 📋 milestone | IEEE Workshop | — | **Presentas paper** | Paper submitted |
@@ -216,7 +216,7 @@ Vipul te va a dar el flujo completo que TÚ vas a usar para diseñar el TIA, mix
 **Antes de la presentación:**
 - [ ] PDF de 8-12 slides max (no slides muy densas)
 - [ ] Practica timing — máximo 8 min, Q&A 10 min
-- [ ] **Anticipa 5 preguntas duras:** (1) ¿por qué 1k/100k/1M y no 10k/30k/100k? (2) ¿cómo manejas DC offset del electrodo? (3) ¿por qué solo (si vas solo)? (4) ¿qué literatura respalda biofilm-detection en suelo? (5) ¿qué cortas si scope explota?
+- [ ] **Anticipa 5 preguntas duras:** (1) ¿por qué 10/30/100 kHz y no 1k/100k/1M? (respuesta: parasitic capacitance del electrode+cable limita freqs altas; bio-band 10-100k es donde está la signal Stage 2) (2) ¿cómo manejas DC offset del electrodo? (3) ¿por qué solo (si vas solo)? (4) ¿qué literatura respalda biofilm-detection en suelo? (5) ¿qué cortas si scope explota?
 
 **Durante:**
 - Habla en inglés. Mantén el ritmo.
@@ -426,7 +426,7 @@ No hay sesiones formales en agosto. Aprovecha:
 
 ---
 
-### 🟢 Sem 32 — Vie 7 sept · INTEGRATION TUTORIAL
+### 🟢 Sem 32 — Vie 7 ago · INTEGRATION TUTORIAL
 
 **Tipo:** Mentor lecture
 **Presentadores:** **Tim Edwards + Juan Moya** — Layout, Top level, ESD, padframe, packaging
@@ -445,7 +445,7 @@ No hay sesiones formales en agosto. Aprovecha:
 
 ---
 
-### 🔴 Sem 33 — Vie 14 sept · **LAYOUT REVIEW (BLOCKS)** ⭐
+### 🔴 Sem 33 — Vie 14 ago · **LAYOUT REVIEW (BLOCKS)** ⭐
 
 **Tipo:** Participant review (TÚ presentas)
 
@@ -455,7 +455,7 @@ No hay sesiones formales en agosto. Aprovecha:
 
 ---
 
-### 🔴 Sem 34 — Vie 21 sept · **LAYOUT REVIEW (TOP) + DRC DRY-RUN #2** ⭐⭐
+### 🔴 Sem 34 — Vie 21 ago · **LAYOUT REVIEW (TOP) + DRC DRY-RUN #2** ⭐⭐
 
 **Tipo:** Participant review + segunda submission al Channel Partner
 **Formato:** 15-20 min presentación
@@ -466,7 +466,7 @@ No hay sesiones formales en agosto. Aprovecha:
 
 ---
 
-### 🔴 Sem 35 — Vie 28 sept · **VERIFICATION + FINAL CHIP REVIEW** ⭐⭐⭐ DEFENSA FINAL
+### 🔴 Sem 35 — Vie 28 ago · **VERIFICATION + FINAL CHIP REVIEW** ⭐⭐⭐ DEFENSA FINAL
 
 **Tipo:** Participant review (defensa final)
 **Formato:** 20-25 min presentación + Q&A extenso
@@ -561,7 +561,7 @@ No hay sesiones formales en agosto. Aprovecha:
 | Decisión | Deadline | Default si no decides |
 |----------|----------|----------------------|
 | Solo o equipo | 5 jun (team formation) | Te asignan a equipo "leftover" |
-| Frecuencias IS finales (1k/100k/1M vs 10k/30k/100k) | 12 jun (proposal review) | El mentor decide por ti |
+| ~~Frecuencias IS finales~~ — resuelto 2026-05-13: **B = 10 / 30 / 100 kHz** | n/a | n/a (decisión propagada) |
 | Cortar IS a 2 frecuencias o mantener 3 | 17 jul (Go/No-go) | Si scope explota, cortan en review |
 | Cortar TIA auto-range a fixed gain | 17 jul | Mismo |
 | Cortar I/Q mixer a single-phase | 17 jul (límite) | Mismo |
@@ -605,10 +605,10 @@ JUL 31  ▸ DRC Dry-run #1 → CP 🔴
 ─────────────────────────────────────────────
 AUG     ▸ Trabajo silencioso (layouts)
 ─────────────────────────────────────────────
-SEP  7  ▸ Integration tutorial [oyente]
-SEP 14  ▸ LAYOUT REVIEW BLOCKS ⭐ [presento]
-SEP 21  ▸ LAYOUT REVIEW TOP + DRC #2 ⭐⭐ [presento]
-SEP 28  ▸ FINAL CHIP REVIEW ⭐⭐⭐ [defiendo]
+AGO  7  ▸ Integration tutorial [oyente]
+AGO 14  ▸ LAYOUT REVIEW BLOCKS ⭐ [presento]
+AGO 21  ▸ LAYOUT REVIEW TOP + DRC #2 ⭐⭐ [presento]
+AGO 28  ▸ FINAL CHIP REVIEW ⭐⭐⭐ [defiendo]
 ─────────────────────────────────────────────
 OCT     ▸ FINAL SUBMISSION GDS 🔴
 ═══════════════════════════════════════════════════════════
@@ -647,13 +647,13 @@ JUL     ▸ IEEE Workshop presentation
 **31 jul (DRC #1):**
 - GDS preliminar al Channel Partner
 
-**14 sep (Layout Blocks):**
+**14 ago (Layout Blocks):**
 - Layouts DRC + LVS clean por bloque + PEX sims
 
-**21 sep (Layout Top + DRC #2):**
+**21 ago (Layout Top + DRC #2):**
 - Top integrado con padring + GDS al CP
 
-**28 sep (Final Review):**
+**28 ago (Final Review):**
 - Final layouts + verification report + measurement plan
 
 **Final submission (TBD):**

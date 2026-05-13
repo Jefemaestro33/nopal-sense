@@ -8,24 +8,12 @@
 Este documento es el **contrato técnico** entre el equipo de diseño y el mentor PICO.
 Todo cambio post-freeze requiere revisión formal.
 
-> ⚠️ **2026-05-08 Update — PDK reality alignment pending in this doc**:
-> Algunos items abajo (especialmente §2 Process and Technology y §1.3 Interfaces) reflejan asunciones pre-PDK-validation:
-> - **SP-TEC-003 QFN-40** → workshop slot 88-pin padring confirmed
-> - **SP-TEC-004 die 2.64 mm²** → die 2935×2935 µm (8.6 mm²), core 2051×2051 µm (4.2 mm²)
-> - **SP-PWR-002 VDD_D = 1.8V dual rail** → 3.3V único (PDK GF180MCUD no soporta 1.8V cells)
-> - **SC-OUT-009 LDO 1.8V externo** → ya no aplica (3.3V único)
-> - **SC-IN-008 connectivity bridges 12** → reducido a 8-10 después de pin recortes
-> - **EN_LDO pin** → eliminado
-> - **CS_MEM pin** → eliminado (FeRAM externa diferida a v2)
+> 📝 **2026-05-13 Update — PDK reality reconciliada**:
+> SP-TEC-002/003 (tape-out date + padring), SP-PWR-001/002/003 (voltage), SC-OUT-009 (LDO), y SP-TEC-004 (area) ya reflejan workshop slot 88-pin + 3.3V único. `EN_LDO` pin eliminado del pinout. Ver `PIN_ASSIGNMENT.md` para asignación funcional.
 >
-> Para framing estratégico actual ver:
-> - [`../README.md`](../README.md) — platform vision + 3-stage research + dual-pilot
-> - [`../docs/research_program.md`](../docs/research_program.md) — Stage 1/2/3 framework
-> - [`../docs/business_model.md`](../docs/business_model.md) — vertical integration
-> - [`../CHANGELOG.md`](../CHANGELOG.md) — entry 2026-05-08 strategic clarifications
-> - [`ARCHITECTURE.md`](./ARCHITECTURE.md) §11 — modular spine + priority labels (P1/P2/P3)
+> **Priority labeling (P1/P2/P3) per requirement será agregado progresivamente** durante mayo-junio antes del Project Proposal Review (12 jun).
 >
-> **Priority labeling (P1/P2/P3) per requirement será agregado progresivamente** durante mayo-junio antes del Project Proposal Review (jun 12). El mentor PICO confirma decisiones finales.
+> Resoluciones técnicas 2026-05-13: **OQ-006 → B (10/30/100 kHz, bio-band specialist)** + **TIA range → 100 Ω – 30 kΩ con 3 gain levels (1×/10×/100×)** match al freq band (electrode+cable parasitic Z_C limita rango medible arriba de eso). Decisiones técnicas pendientes para mentor: OQ-001 (TIA topology), OQ-007 (DC offset cancellation), OQ-009 (VREF buffer PSRR).
 
 ---
 
@@ -53,7 +41,7 @@ Es decir: **el v1 chipathon es específicamente diseñado para validar Stages 1 
 El chip Nopal-Sense v1 implementa:
 
 **SC-IN-001:** Interfaces de sensor consolidadas (SPI, 1-Wire, pulse counter, ADC)
-**SC-IN-002:** Impedance Spectroscopy a 3 frecuencias fijas (1 kHz, 100 kHz, 1 MHz)
+**SC-IN-002:** Impedance Spectroscopy a 3 frecuencias fijas en bio-band: **10 kHz, 30 kHz, 100 kHz** (OQ-006 resuelto 2026-05-13 → Opción B bio-centric)
 **SC-IN-003:** Sleep controller autónomo con wake timer
 **SC-IN-004:** Register bank 32×16-bit con acceso SPI slave
 **SC-IN-005:** PUF simple basado en SRAM power-up state (chip ID únicamente)
@@ -73,7 +61,7 @@ El chip Nopal-Sense v1 implementa:
 **SC-OUT-006:** Secure boot (v1 usa firmware + ATECC608)
 **SC-OUT-007:** ML accelerator (v1 delega a VPS)
 **SC-OUT-008:** Barrido IS programable (v1 solo 3 frecuencias fijas)
-**SC-OUT-009:** LDO 1.8V on-chip (v1 usa external LDO)
+**SC-OUT-009:** LDO 1.8V dual rail — eliminado por restricción PDK (v1 es 3.3V único, sin LDO externo).
 **SC-OUT-010:** JTAG formal (v1 usa SPI debug mode)
 
 ### 1.3 Interfaces
@@ -83,7 +71,6 @@ El chip Nopal-Sense v1 implementa:
 - DS18B20 temperature sensor (vía 1-Wire)
 - External FeRAM (vía SPI master, opcional)
 - External ATECC608 (vía bit-banged I2C, opcional)
-- External LDO (vía EN_LDO pin)
 - Sensores analógicos (vía 8-ch ADC mux)
 - Pulse sources: EC probe, rain gauge, anemómetro
 - Impedance probes: electrodes A/B en suelo
@@ -95,15 +82,15 @@ El chip Nopal-Sense v1 implementa:
 ### 2.1 Manufacturing
 
 **SP-TEC-001:** Proceso GlobalFoundries GF180MCU (180nm CMOS con HV option)
-**SP-TEC-002:** Tape-out via PICO Chipathon 2026 shuttle (septiembre 2026)
-**SP-TEC-003:** Package QFN-40 (6×6 mm, 0.5 mm pitch)
-**SP-TEC-004:** Die area budget: 2.64 mm² estimado, hasta 3.5 mm² máximo permitido
+**SP-TEC-002:** Tape-out via PICO Chipathon 2026 shuttle (Final Submission TBD ~Sept 2026, post Final Chip Review Aug 28)
+**SP-TEC-003:** Padring: workshop slot 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS, die 2935×2935 µm, core 2051×2051 µm)
+**SP-TEC-004:** Active design area budget: ~3-4 mm² within the 2051×2051 µm core
 **SP-TEC-005:** Metal layers: 5 (suficiente para digital + analog mixed)
 
 ### 2.2 Power
 
-**SP-PWR-001:** VDD_A (analog supply): 3.3V ± 10% (rango 2.97-3.63V)
-**SP-PWR-002:** VDD_D (digital core): 1.8V ± 10% (rango 1.62-1.98V, desde external LDO)
+**SP-PWR-001:** VDD (single rail): 3.3V ± 10% (rango 2.97-3.63V). Analog y digital comparten rail; PDK gf180mcuD no ship 1.8V std cells nativos.
+**SP-PWR-002:** I/O cells: 5V WR pads del workshop padring (operan a 3.3V con impacto en speed; permite interfacear directo con sensores 5V externos).
 **SP-PWR-003:** I/O level: CMOS 3.3V compatible
 **SP-PWR-004:** Sleep current (deep sleep, wake timer only): <1 µA typical, 3 µA max
 **SP-PWR-005:** Active current (IS measurement, 100 ms burst): <2 mA typical, 3 mA max
@@ -115,12 +102,12 @@ El chip Nopal-Sense v1 implementa:
 
 ### 3.1 Impedance Spectroscopy (flagship)
 
-**REQ-IS-001:** Chip shall generate sinusoidal excitation at 3 frequencies: 1 kHz, 100 kHz, 1 MHz
+**REQ-IS-001:** Chip shall generate sinusoidal excitation at 3 frequencies in bio-band: **10 kHz, 30 kHz, 100 kHz**
 **REQ-IS-002:** Excitation amplitude: 100 mVpp ± 10% (configurable via register)
 **REQ-IS-003:** Excitation DC offset: 0 V ± 10 mV (rail-to-rail centered)
 **REQ-IS-004:** Frequency accuracy: ±1% from target
 **REQ-IS-005:** Chip shall measure complex impedance Z(ω) = |Z| ∠ φ at each frequency
-**REQ-IS-006:** Magnitude accuracy: ±3% of reading across dynamic range 100 Ω – 100 kΩ
+**REQ-IS-006:** Magnitude accuracy: ±3% of reading across dynamic range **100 Ω – 30 kΩ** (bounded by electrode + cable parasitic capacitance at top freq of 100 kHz — see ARCHITECTURE.md §6.1 for derivation). TIA implements 3 gain levels (1×, 10×, 100×) with auto-range.
 **REQ-IS-007:** Phase accuracy: ±2° across dynamic range
 **REQ-IS-008:** Measurement time per frequency: <30 ms
 **REQ-IS-009:** Full 3-frequency sweep: <100 ms
@@ -243,12 +230,12 @@ El chip Nopal-Sense v1 implementa:
 
 | Addr | Name | Width | R/W | Reset | Description |
 |------|------|-------|-----|-------|-------------|
-| 0x08 | Z_MAG_1K | 16 | R | 0x0000 | |Z| at 1 kHz, Q8.8 format (Ω) |
-| 0x09 | Z_PHASE_1K | 16 | R | 0x0000 | ∠Z at 1 kHz, Q4.12 format (radians) |
-| 0x0A | Z_MAG_100K | 16 | R | 0x0000 | |Z| at 100 kHz |
-| 0x0B | Z_PHASE_100K | 16 | R | 0x0000 | ∠Z at 100 kHz |
-| 0x0C | Z_MAG_1M | 16 | R | 0x0000 | |Z| at 1 MHz |
-| 0x0D | Z_PHASE_1M | 16 | R | 0x0000 | ∠Z at 1 MHz |
+| 0x08 | Z_MAG_10K | 16 | R | 0x0000 | |Z| at 10 kHz, Q8.8 format (Ω) |
+| 0x09 | Z_PHASE_10K | 16 | R | 0x0000 | ∠Z at 10 kHz, Q4.12 format (radians) |
+| 0x0A | Z_MAG_30K | 16 | R | 0x0000 | |Z| at 30 kHz (β-dispersion peak) |
+| 0x0B | Z_PHASE_30K | 16 | R | 0x0000 | ∠Z at 30 kHz |
+| 0x0C | Z_MAG_100K | 16 | R | 0x0000 | |Z| at 100 kHz |
+| 0x0D | Z_PHASE_100K | 16 | R | 0x0000 | ∠Z at 100 kHz |
 
 ### 5.4 Calibration Configuration (read/write)
 
@@ -347,7 +334,7 @@ Bytes 1-2: Data (16-bit, MSB first)
 
 ### 7.3 IS measurement
 
-- Settling time per frequency: 1 ms (1 kHz), 100 µs (100 kHz), 10 µs (1 MHz)
+- Settling time per frequency: 100 µs (10 kHz), 33 µs (30 kHz), 10 µs (100 kHz)
 - Integration time: configurable 1-32 cycles per frequency
 - Full sweep (3 frequencies, default settings): <100 ms
 

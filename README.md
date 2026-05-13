@@ -57,7 +57,7 @@ El chip vive en silicio. El algoritmo y la inferencia ML viven en cloud — estr
 | Die | 2935 × 2935 µm |
 | Core | 2051 × 2051 µm |
 | Voltaje | 3.3V único (con I/O HV 5V/6V capable) |
-| IS frecuencias | 3 fijas (recomendación pre-mentor: 1k/30k/300k Hz, decisión final OQ-006) |
+| IS frecuencias | **3 fijas en bio-band: 10 kHz / 30 kHz / 100 kHz** (OQ-006 resuelto = B bio-centric, 2026-05-13) |
 | ADC | 14-bit SAR compartido con MUX 8-canal |
 | Sleep | <1 µA target |
 | Active | ~2 mA × 100 ms por ciclo |
@@ -98,11 +98,11 @@ nopal-sense/
     └── README.md
 ```
 
-> ⚠️ **Pendiente de update progresivo:** Algunos archivos en `v1-pico/` aún reflejan asunciones del SPEC original (QFN-40, 1.8V dual, tape-out Sept). Estos se actualizan progresivamente conforme avance el chipathon. Ver `docs/briefing.md` §9 (Architectural Reality Checks).
+> 📝 **Update 2026-05-13:** Inconsistencias post-PDK-validation reconciliadas en este branch — todos los docs ahora reflejan workshop slot 88-pin, 3.3V único, Final Chip Review Aug 28 / Final Submission TBD ~Sept, **OQ-006 resuelto → B (10/30/100 kHz bio-band)**, y TIA range fijado a 100Ω-30kΩ con 3 gain levels. Ver `CHANGELOG.md` para historial. Pending: OQ-001/007/008/009 técnicas para mentor (pre-Schematic Review Jul 3).
 
 ## Status — mayo 2026
 
-- ✅ Spec frozen v1.0 (con resolución pendiente de OQ-006 a OQ-009)
+- ✅ Spec frozen v1.0 (OQ-006 resuelto 2026-05-13 → B bio-band; OQ-001/007/008/009 pendientes para mentor)
 - ✅ Golden model 1212 líneas, 8/8 tests pasando
 - ✅ 5 architectural reality checks documentados
 - ✅ Open Questions OQ-001 a OQ-009 formales

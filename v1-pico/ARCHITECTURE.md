@@ -4,18 +4,7 @@
 
 This document explains **HOW** the chip achieves what `SPEC_FROZEN.md` requires.
 
-> ⚠️ **2026-05-08 Note**: Algunos detalles abajo (especialmente Sección 4 sobre dual voltage 1.8V/3.3V, Sección 6.5 sobre QFN-40, Sección 7 power budget) reflejan asunciones del SPEC original. PDK reality post-validation:
-> - **Voltage**: 3.3V único (PDK GF180MCUD no soporta 1.8V cells nativos)
-> - **Padring**: workshop slot 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS)
-> - **Die**: 2935×2935 µm, core 2051×2051 µm
->
-> Para framing estratégico actual (vertical integration, 3-stage research, dual-pilot), ver:
-> - [`../README.md`](../README.md)
-> - [`../docs/research_program.md`](../docs/research_program.md)
-> - [`../docs/business_model.md`](../docs/business_model.md)
-> - [`../CHANGELOG.md`](../CHANGELOG.md) (entry 2026-05-08)
->
-> v1 implementation strategy: **modular spine** with priority labels — ver Sección 11 (NEW) al final de este doc.
+> 📝 **2026-05-13 Note**: Documento reconciliado post-PDK-validation. Voltage = 3.3V único, padring = workshop slot 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS), die 2935×2935 µm / core 2051×2051 µm. Las secciones 3.4 (Power), 6.5 (Padring), y 11 (Modular spine) ya reflejan estas decisiones. Para framing estratégico ver `../README.md` + `../docs/research_program.md`. Para historial de la migración ver `../CHANGELOG.md`.
 
 ---
 
@@ -174,7 +163,7 @@ DIGITAL OSC ──┐     │    ┌──────┐   ┌─────�
                     │                  ┌───────────────────┐           │
                     │    ELEC_B ───────►│  TIA              │          │
                     │                  │  • Programmable   │          │
-                    │                  │    gain (6 levels)│          │
+                    │                  │    gain (3 levels)│          │
                     │                  │  • Auto-range     │          │
                     │                  └─────────┬─────────┘          │
                     │                            │                     │
@@ -209,9 +198,11 @@ DIGITAL OSC ──┐     │    ┌──────┐   ┌─────�
 - 12-bit doubles area for marginal benefit
 - Justifies 0.2 mm² vs 0.4 mm²
 
-**D-IS-003:** TIA gain programmable in 6 levels (1x, 10x, 100x, 1k, 10k, 100k)
+**D-IS-003:** TIA gain programmable in 3 levels (1×, 10×, 100×)
 - Auto-ranges during measurement
-- Covers soil impedance range 100 Ω – 10 MΩ
+- Covers soil impedance range **100 Ω – 30 kΩ** at the operating bio-band (10-100 kHz)
+- Upper bound set by electrode+cable parasitic capacitance (~200-500 pF) which dominates the AC path above ~30 kΩ at 100 kHz: Z_C = 1/(2π·f·C) ≈ 3 kΩ at 100 kHz, 500 pF → series with R_soil → effective measurement ceiling
+- Lower bound by TIA noise floor + minimum useful gain (1×)
 
 **D-IS-004:** I/Q mixer uses switching multipliers (not analog multipliers)
 - Saves area
@@ -315,32 +306,29 @@ DIGITAL OSC ──┐     │    ┌──────┐   ┌─────�
 
 ```
      ┌──────────────────────────────────────────────┐
-     │            VDD_A (3.3V)                       │
+     │            VDD (single rail, 3.3V)            │
      │                                               │
      │  ┌──────────────┐   ┌─────────────────────┐   │
      │  │ Sleep domain │   │ Analog domain       │   │
      │  │ always-on    │   │ gated per mode      │   │
      │  │ 0.5 µA       │   │ 2 mA when active    │   │
      │  └──────────────┘   └─────────────────────┘   │
-     └──────────────────────────────────────────────┘
-                          │ external LDO
-                          ▼
-     ┌──────────────────────────────────────────────┐
-     │            VDD_D (1.8V)                       │
      │                                               │
      │  ┌───────────────────────────────────────┐    │
      │  │ Digital domain                        │    │
      │  │ • Sleep: PUF retention, wake timer    │    │
      │  │   → 0.3 µA                            │    │
      │  │ • Active: full processing             │    │
-     │  │   → 300 µA @ 1 MHz                    │    │
+     │  │   → 300 µA @ 1 MHz (5V std cells run  │    │
+     │  │     at 3.3V — slower but functional)  │    │
      │  └───────────────────────────────────────┘    │
      └──────────────────────────────────────────────┘
 ```
 
-**D-PWR-001:** Dual voltage domain to minimize digital dynamic power
-- VDD_D = 1.8V saves ~70% dynamic power vs 3.3V
-- Analog kept at 3.3V for better dynamic range in IS block
+**D-PWR-001:** Single voltage rail at 3.3V (PDK gf180mcuD no ships 1.8V std cells nativos).
+- Original plan was VDD_D = 1.8V dual rail with external LDO — eliminated post-PDK-validation.
+- Standard cells available are 5V databook (`gf180mcu_fd_sc_mcu7t5v0`); operate at 3.3V with reduced speed vs nominal 5V, but power benefit vs 5V operation still substantial.
+- Analog domain at 3.3V — adequate dynamic range for IS block at 100 mVpp excitation.
 
 **D-PWR-002:** Clock gating at subsystem granularity
 - 12 independent gates (one per major block)
@@ -362,7 +350,7 @@ DIGITAL OSC ──┐     │    ┌──────┐   ┌─────�
 |--------|--------|-----------|------------|---------|
 | CLK_MAIN | Internal RC osc (calibrated) | 1 MHz ±5% | No (gated when sleep) | Digital logic, ADC |
 | CLK_SLEEP | Ring osc | 32 kHz ±30% | **Yes** | Wake timer, tamper, PUF |
-| CLK_IS | Derived from CLK_MAIN (PLL-less) | 1 kHz / 100 kHz / 1 MHz | Active during IS | DDS |
+| CLK_IS | Derived from CLK_MAIN (PLL-less) | 10 kHz / 30 kHz / 100 kHz | Active during IS | DDS |
 
 ### 4.2 Clock domain crossings
 
@@ -420,27 +408,27 @@ Add sleep current (0.5 µA): total average ~0.7 µA
 ### 5.2 Scenario B: IS measurement (detailed)
 
 ```
-  t=0:    IS FSM entered
-  t=0:    Load frequency 1 (1 kHz) into DDS phase increment register
-  t=0.1:  Turn on DAC, buffer, TIA
-  t=1:    Wait 1 ms settling (slow at 1 kHz)
-  t=1:    Start ADC sampling at 4 kSPS (4 samples per period at 1 kHz)
-  t=17:   16 periods captured = 4 ms data
-  t=17:   Run CORDIC for magnitude + phase → Z_MAG_1K, Z_PHASE_1K
-  t=17:   Switch to frequency 2 (100 kHz)
-  t=17.1: Wait 100 µs settling
-  t=17.2: Sample ADC at 400 kSPS (4 samples per period at 100 kHz)
-  t=17.5: 128 periods captured = 1.28 ms data
-  t=17.5: Compute → Z_MAG_100K, Z_PHASE_100K
-  t=17.5: Switch to frequency 3 (1 MHz)
-  t=17.51: Wait 10 µs settling
-  t=17.52: Sample at 4 MSPS (4 samples per period at 1 MHz)
-  t=17.6: 128 periods captured = 128 µs data
-  t=17.6: Compute → Z_MAG_1M, Z_PHASE_1M
-  t=17.6: IS FSM done, update STATUS
+  t=0:     IS FSM entered
+  t=0:     Load frequency 1 (10 kHz) into DDS phase increment register
+  t=0.1:   Turn on DAC, buffer, TIA
+  t=0.6:   500 µs settling (10 kHz needs more cycles to stabilize electrode)
+  t=0.6:   Start ADC sampling at 40 kSPS (4 samples per period at 10 kHz)
+  t=3.8:   32 periods captured = 3.2 ms data
+  t=3.8:   Run CORDIC for magnitude + phase → Z_MAG_10K, Z_PHASE_10K
+  t=3.8:   Switch to frequency 2 (30 kHz)
+  t=3.9:   100 µs settling
+  t=3.9:   Sample ADC at 120 kSPS (4 samples per period at 30 kHz)
+  t=5.0:   32 periods captured = ~1.07 ms data
+  t=5.0:   Compute → Z_MAG_30K, Z_PHASE_30K
+  t=5.0:   Switch to frequency 3 (100 kHz)
+  t=5.02:  20 µs settling
+  t=5.02:  Sample at 400 kSPS (4 samples per period at 100 kHz)
+  t=5.34:  128 periods captured = 1.28 ms data
+  t=5.34:  Compute → Z_MAG_100K, Z_PHASE_100K
+  t=5.34:  IS FSM done, update STATUS
 ```
 
-Total IS time: ~18 ms (well under 100 ms spec)
+Total IS time: ~5-6 ms (well under 100 ms spec). All three frecuencias dentro de la β-dispersion band (OQ-006 = B bio-centric, 2026-05-13).
 
 ### 5.3 Scenario C: Alert triggered
 
@@ -622,7 +610,7 @@ In practice: self-discharge (~2%/month) is the floor. Battery life: **6-18 month
 - **OQ-003:** Do we need brown-out detection? Trade-off: area vs reliability.
 - **OQ-004:** Should scheduler support user-programmable wake periods, or fix to the 6 presets?
 - **OQ-005:** Add dedicated test pins for analog monitor during debug?
-- **OQ-006 (added 2026-05-07):** Frecuencias IS finales — recomendación pre-mentor 1k/30k/300k Hz vs SPEC original 1k/100k/1M Hz. Bio-band coverage matters.
+- **OQ-006 (resuelto 2026-05-13):** Frecuencias IS finales → **B: 10 kHz / 30 kHz / 100 kHz** (bio-centric, 3 puntos en bio-band para fit Cole-Cole + zoosporogenesis multi-feature classifier). EC y VWC siguen via sensores commerciales externos del nodo Zafra; el chip se especializa en bio-band.
 - **OQ-007 (added 2026-05-07):** DC offset cancellation strategy — auto-zero firmware vs hardware AC coupling. Suelo tiene 50-280 mV DC offset típico.
 - **OQ-008 (added 2026-05-07):** T-correction on-chip vs VPS — REQ-PR-001 lineal Q8.8 no captura Debye/Arrhenius. Punt to VPS.
 - **OQ-009 (added 2026-05-07):** VREF_OUT buffer strategy — 0.05% precisión exportada requiere buffer dedicado + compensación externa.

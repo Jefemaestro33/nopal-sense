@@ -34,45 +34,57 @@ El operador del chip es **Zafra-AgTech** — una startup mexicana de agtech enfo
 ## 2. Qué es Nopal-Sense
 
 Nopal-Sense es un chip ASIC mixed-signal que Ernest está diseñando como parte
-del IEEE SSCS PICO Chipathon 2026. **No es un sensor — es una plataforma de
-silicio** que:
+del IEEE SSCS PICO Chipathon 2026. **Es un especialista de la bio-band, no
+un sensor de propósito general.** Cumple tres roles en el nodo Zafra-AgTech:
 
-1. **Consolida 5+ sensores tradicionales de suelo en un solo chip + sondas
-   pasivas**, eliminando componentes discretos del nodo IoT.
-2. **Agrega una capacidad de medición** que no existe en ningún sensor
-   comercial: espectroscopía de impedancia (IS) en banda 10-100 kHz, donde
-   teóricamente se puede observar perturbación electroquímica asociada a
-   actividad biológica / biofilms en el suelo.
-3. **Exporta recursos internos** (referencia de precisión, clock compartido,
-   power switches, interrupt aggregation) que mejoran el rendimiento de los
-   componentes externos no integrados en v1.
+1. **Agrega una capacidad de medición que no existe en ningún sensor
+   comercial:** espectroscopía de impedancia (IS) multi-frecuencia
+   **enfocada en la β-dispersion band 10-100 kHz**, donde aparecen las firmas
+   electroquímicas de actividad hifal y membrana celular en la rizosfera.
+   Esta es **la apuesta científica principal del chip**.
+2. **Consolida la infraestructura compartida del nodo:** ADC 14-bit con MUX
+   8-canal, voltage reference de precisión, clock distribuido, switches de
+   power. El chip lee a los sensores commerciales del nodo (EC probe, sondas
+   capacitivas de humedad, DS18B20 de temperatura) a través de su propio ADC
+   — **no los reemplaza por IS** porque su banda 10-100 kHz no mide
+   conductividad iónica ni permittivity dieléctrica.
+3. **Exporta recursos internos** (VREF de 1.2V, clock 1 MHz, power switches,
+   interrupt aggregator) que mejoran el rendimiento del nodo completo.
 
 ### 2.1 El insight técnico fundamental
 
 Cuando aplicas corriente alterna (AC) al suelo a diferentes frecuencias,
 distintos fenómenos físicos dominan la respuesta:
 
-| Rango de frecuencia | Qué mides | Sensor tradicional que reemplaza |
+| Rango de frecuencia | Qué mides | Cómo lo obtiene el nodo Zafra |
 |---|---|---|
-| 100 Hz – 1 kHz | Conductividad iónica (salinidad) | Sonda EC (~$100 MXN) |
-| 10 kHz – 100 kHz | Transferencia de carga, biofilms | **Nada — capacidad nueva** |
-| 1 MHz – 10 MHz | Permitividad dieléctrica (contenido de agua) | Sensor capacitivo × 3 (~$150 MXN) |
+| 100 Hz – 1 kHz | Conductividad iónica (salinidad) | Sonda EC commercial al ADC del chip |
+| **10 kHz – 100 kHz** | **β-dispersion: transferencia de carga + membrana celular + biofilms** | **🎯 Nopal-Sense IS (la apuesta científica)** |
+| 1 MHz – 10 MHz | Permittivity dieléctrica (water content) | Sondas capacitivas commerciales al ADC del chip |
 
-**Un solo circuito analógico + sondas de pines metálicos simples** reemplaza EC
-probe + 3 sensores capacitivos de humedad **Y potencialmente** agrega
-detección de actividad biológica en banda 10-100 kHz.
+**La decisión arquitectónica del chip** es enfocar las 3 frecuencias IS dentro
+de la banda biológica (**10/30/100 kHz**, OQ-006 = B): 3 puntos en β-dispersion
+permiten fit Cole-Cole + clasificador ML multi-feature de zoosporogenesis.
+**Las frecuencias iónica y dieléctrica las cubren sensores commerciales** que el
+chip lee — eficiencia de specialization vs replicación.
+
+**Restricción física relevante**: a 100 kHz con cable+electrode parasitic
+~500 pF, la capacitancia parásita tiene Z_C ≈ 3 kΩ — esto limita el rango
+medible del chip a **~100 Ω – 30 kΩ**. Extender frecuencias arriba de 100 kHz
+no agrega resolución útil para suelo agrícola; ahogan la señal.
 
 ### 2.2 Arquitectura de 3 capas
 
 ```
 CAPA 1: CHIP NOPAL-SENSE (silicio) — estable, cambia en años
-- Impedance Spectroscopy (3 frecuencias fijas, decisión final OQ-006)
-- Interfaces de sensor consolidadas (SPI, 1-Wire, pulse counter)
-- ADC 14-bit compartido con MUX 8-ch
+- Impedance Spectroscopy a 3 frecuencias fijas en bio-band: 10/30/100 kHz (OQ-006 = B)
+- TIA bio-band-optimized con auto-range 100Ω-30kΩ (3 gain levels)
+- ADC 14-bit compartido con MUX 8-ch (lee sensores commerciales del nodo)
 - Sleep controller ultra-low-power (<1 µA target)
 - Signal conditioning integrado
 - Register bank + SPI slave
-→ Lo que NO cambia: física de medición en hardware
+- VREF + CLK + power switches exportados al nodo
+→ Lo que NO cambia: física de medición en hardware (specialization bio-band)
 
 CAPA 2: ESP32 FIRMWARE — actualizable OTA, cambia en semanas
 - Coordinación con chip vía SPI
@@ -101,7 +113,7 @@ software perdería precisión y batería.
 
 **v1 (PICO Chipathon 2026):**
 - Tape-out: Final Submission ~oct 2026 (TBD), después del Final Chip Review
-  del 28 sept
+  del 28 ago
 - Chips en mano: ~ene 2027
 - Proceso: GlobalFoundries GF180MCU (variante D)
 - Padring: workshop slot 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS)
@@ -544,14 +556,15 @@ puntos dentro de 10-100 kHz para ajustar un modelo Cole-Cole.
 | **B: Bio-centric** | 10 k / 30 k / 100 k | 3 puntos en bio-band. Layer 2 fuerte. | Pierde anchor iónico (1k) y dieléctrico (1M). |
 | **C: Híbrida (recomendada)** | 1 k / 30 k / 300 k | Anchor iónico + bio core + transición dieléctrica | Más estrecha que A pero más útil que B para clasificador combinado |
 
-**Recomendación pre-mentor:** **Opción C (1k / 30k / 300k)** — preserva el
-anchor iónico para la consolidación de salinidad, coloca el punto medio en
-el corazón de la banda biológica (30 kHz, pico del MWS para arcillas
-volcánicas), y el punto alto cerca de la transición dieléctrica. Es el
-compromiso más útil para el clasificador ML del VPS.
-
-**Decisión final:** OQ-006, a resolver antes del Project Proposal Review
-del 12 jun.
+**Resolución 2026-05-13 → Opción B (10 k / 30 k / 100 k):** se prioriza
+maximizar puntos en la β-dispersion para sostener Stage 2 (fit Cole-Cole
+multi-punto + clasificador ML temporal de zoosporogenesis). Los anchors
+iónico (1 kHz) y dieléctrico (1 MHz) se delegan a sensores commerciales del
+nodo Zafra (sonda EC + capacitiva al ADC del chip) — vertical integration
+permite especialización en lugar de replicación. Además: parasitic Z_C
+del cable+electrode (~500 pF) ≈ 3 kΩ a 100 kHz limita el rango medible
+útil a ~30 kΩ, sin sentido empujar la 3ra freq arriba de 100 kHz en suelo
+agrícola.
 
 ### 9.2 DC offset del electrodo y rango dinámico del TIA
 
@@ -702,7 +715,7 @@ mayo. Cada una tiene preferencia documentada y deadline de resolución.
 | OQ-003 | Mixer I/Q analog vs switching demodulator | Analog multiplier vs Gilbert cell vs switching mux | Switching mux + LPF (área eficiente, adecuado para 14-bit final) | 3 jul |
 | OQ-004 | Bandgap quality para 0.05% precision en VREF_OUT exportado | PTAT-CTAT clásico vs chopper-stabilized | PTAT-CTAT con buffer dedicado (sección 9.4) | 3 jul |
 | OQ-005 | Cocotb + Spectre AMS flow para mixed-signal | Setup recomendado y herramientas | Por definir con mentor | 12 jun |
-| **OQ-006** | **Frecuencias IS finales** | **A: 1k/100k/1M · B: 10k/30k/100k · C: 1k/30k/300k** | **C (híbrida)** | **12 jun** |
+| **OQ-006** | **Frecuencias IS finales** | **A: 1k/100k/1M · B: 10k/30k/100k · C: 1k/30k/300k** | **B (resuelto 2026-05-13)** | ✅ |
 | **OQ-007** | **Cancelación de DC offset del electrodo** | **1: Cap+switch · 2: Chopper · 3: Servo loop · 4: Auto-zero firmware** | **4 (auto-zero firmware)** | **12 jun** |
 | **OQ-008** | **Corrección no-lineal de T: on-chip vs VPS** | **A: Linear on-chip + Z(ω,T) en VPS · B: LUT 2D on-chip · C: Polynomial on-chip** | **A (punt to VPS)** | **3 jul** |
 | **OQ-009** | **VREF_OUT buffer + compensación** | **1: Buffer + ext compensación · 2: Buffer + cap interno · 3: Reducir precisión a 0.5%** | **1 (buffer + ext comp)** | **3 jul** |
