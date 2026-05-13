@@ -197,15 +197,3 @@ Pero **prefiero preservar IS como flagship** — es lo que valida la apuesta cie
 ---
 
 **One-line ask:** *Please assign a mentor con tape-out experience en mixed-signal con on-chip ADCs y analog front-ends, idealmente con biosensing o electrochemical impedance background.*
-
----
-
-## Por qué este proyecto importa
-
-- **First Mexican chip del programa PICO** (programa global, ~5 personas en MX han taped-out independientemente)
-- **Operational backing real** desde día 1 (no académico-only — operator deployment activo)
-- **Disciplined research program** con probability framings honestas, no hype
-- **Open-source bajo Apache 2.0** — chip design público, datos comerciales privados (clean IP boundary)
-- **Track D angle**: RTL completamente co-diseñado con Claude AI (case study LLM-assisted chip design real-world)
-
-Gracias por considerar este proyecto.

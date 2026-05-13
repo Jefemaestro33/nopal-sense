@@ -12,17 +12,6 @@
 
 ---
 
-## 0. La apuesta en una frase
-
-> *Soy el primer mexicano del programa, en un track sin competidor agrícola, con
-> precedente directo (Tennessee 2022 electroquímico), pipeline de medición ya
-> construido, y documentación 10× sobre el promedio. Si ejecuto bien la pieza
-> mixed-signal — yo solo o con 1-2 colaboradores — gano paper IEEE, primer
-> silicio mexicano para AgTech, y validación de v1 que justifica el chip
-> comercial v2 en 2028.*
-
----
-
 ## 1. Qué es Nopal-Sense **en el lenguaje del chipathon**
 
 ### 1.1 Track positioning oficial
@@ -549,49 +538,6 @@ Intel/AMD/NXP GDL), comunidad RISC-V LatAm, founders de AgTech.
 El chipathon es proyecto técnico/académico. Zafra es comercial. Comunicaciones
 comerciales (productores piloto, partners, fundraising) no involucran al
 chipathon directamente.
-
----
-
-## 12. La razón filosófica del proyecto
-
-(Incluir en presentación si hay 1 minuto de margen narrativo, no antes.)
-
-> *México exporta 60% del aguacate mundial. Pierde $100M+/año a una sola
-> enfermedad de raíz. Tiene 10,000+ ingenieros de semiconductores en Guadalajara
-> trabajando para Intel, AMD, NXP, Marvell — pero ningún chip propio fabricado
-> independientemente. Este chipathon es el primer puente entre esos dos hechos:
-> usar la capacidad técnica que ya existe en México para resolver problemas
-> mexicanos. No es marketing — es estrategia industrial. Cada paper IEEE
-> documentado es un peldaño. Cada chip taped-out es una credencial. Cada
-> productor piloto es un caso de uso. Esto no termina en el chipathon — empieza
-> ahí.*
-
----
-
-## 13. Compromisos personales (escritos para no olvidar)
-
-Antes del kick-off mañana 8 may:
-- [ ] Leído este plan + el calendario una vez completo
-- [ ] Discord joined
-- [ ] Docker corriendo + imagen IIC-OSIC bajada (✅ done)
-- [ ] SPEC editada con 3 fixes (3.3V único, 88-pin padring, scope analógico
-      verificable)
-- [ ] MENTOR_BRIEFING actualizado con OQ-006/007/008/009
-- [ ] 30 segundos de auto-presentación memorizada
-
-Durante el chipathon:
-- [ ] No prometo lo que no he medido
-- [ ] No oculto lo que falló
-- [ ] No comprometo Zafra al chipathon
-- [ ] No tome decisiones de scope sin consultar mentor (post 12 jun)
-- [ ] Reporte semanal cada miércoles, sin excepciones
-- [ ] Cada review formal: yo presento, no delego
-
-Post-chipathon:
-- [ ] Paper IEEE submitted antes del workshop julio 2027
-- [ ] Chip funcione eléctricamente o documentar por qué no
-- [ ] Dataset publicado bajo CC BY-SA 4.0 (parte chip, no parte Zafra)
-- [ ] V2 design empezado con lecciones de v1
 
 ---
 

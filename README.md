@@ -128,16 +128,6 @@ Apache 2.0 covers chip design and specs. Field algorithms, datasets, and operati
 - **Ernest Darell Zermeño Plascencia** ([@Jefemaestro33](https://github.com/Jefemaestro33)) — chip design + Zafra-AgTech founder
 - **Mentor PICO** — TBD post-team-formation (jun 2026), preferencia analog/mixed-signal con experiencia en biosensors / electrochemical impedance
 
-## Linaje arquitectónico
-
-Este chip extiende la línea del **2022 PICO Chipathon "Electrochemical Water Quality Monitoring" chip** (USA5, University of Tennessee) — primer chip electroquímico mixed-signal del programa. Cambios en Nopal-Sense:
-- Suelo en lugar de agua
-- IS multi-frecuencia con DDS programable
-- Architectural exports + connectivity bridges para nodo IoT real
-- Vertical integration model
-- 3-stage research program disciplined
-- **Primer chip mexicano del programa PICO**
-
 ## Repos relacionados
 
 | Repo | Qué es | Visibilidad |
@@ -155,6 +145,4 @@ Este chip extiende la línea del **2022 PICO Chipathon "Electrochemical Water Qu
 
 ## Acknowledgments
 
-Diseñado con mentorship del programa **IEEE SSCS PICO Open-Source Chipathon 2026** (sponsor: The OpenROAD Initiative). Track leads: Camilo Velez + Vipul Sharma (B), Mehdi Saligane + Saptarshi Ghosh + Luighi (D). PDK: GF180MCUD (Google + GlobalFoundries open-source). Tooling: IIC-OSIC-TOOLS Docker (Harald Pretl, JKU Linz).
-
-RTL co-diseñado con Claude AI (Anthropic) — Track D submission angle.
+Diseñado con mentorship del programa **IEEE SSCS PICO Open-Source Chipathon 2026** (sponsor: The OpenROAD Initiative). Track leads: Camilo Velez + Vipul Sharma (B), Mehdi Saligane + Saptarshi Ghosh + Luighi (D). PDK: GF180MCUD (Google + GlobalFoundries open-source). Tooling: IIC-OSIC-TOOLS Docker (Harald Pretl, JKU Linz). RTL co-diseñado con Claude AI (Anthropic).

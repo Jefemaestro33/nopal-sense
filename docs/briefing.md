@@ -170,7 +170,7 @@ arquitectónico más directo para Nopal-Sense.
 | Bridges arquitectónicos | No (chip aislado) | 12 bridges para nodo IoT real |
 | Power switches exportados | No | 7× GPIO_SW programables |
 | Validación post-silicon | Lab | Lab + campo (Andisol + qPCR pareado) |
-| Geografía | USA | **México (primer chip mexicano del programa)** |
+| Geografía | USA | México |
 
 **Lección operacional:** si el equipo de Tennessee logró tape-out con scope
 electroquímico, un equipo bien preparado con scope similar y el doble de
@@ -258,73 +258,6 @@ NMOS/PMOS 3.3V en GF180MCU
 **Esto acelera nuestro diseño analog significativamente.** No tenemos que
 generar curvas de sizing nosotros — están listas para usar con la metodología
 de Boris Murmann (lecture programada para el 19 jun).
-
----
-
-## 5. México como contexto industrial
-
-Esta sección no es marketing — es contexto que valida la pregunta "¿por qué
-este proyecto, por qué desde México, por qué ahora?"
-
-### 5.1 El mercado real
-
-- **Aguacate:** México es el #1 exportador mundial (60% del aguacate global).
-  Exportaciones ~$3B USD/año.
-- **Phytophthora cinnamomi:** $100M+ USD/año en pérdidas mexicanas.
-  Enfermedad principal del aguacate Hass.
-- **Sin solución comercial accesible:** detección directa por PCR de lab
-  cuesta $500 USD/análisis y toma 1 semana. Equipos portátiles de impedancia
-  cuestan $3,000-10,000 USD. Ningún producto en el mercado a $10/nodo.
-
-### 5.2 El ecosistema técnico (lo que hay vs lo que no hay)
-
-**Lo que hay en México:**
-- 10,000+ ingenieros de semiconductores en GDL (Intel, AMD, NXP, Marvell,
-  Qualcomm, ON Semi, Broadcom, Microchip)
-- INAOE (Puebla): cleanroom desde 1974, único en MX capaz de fabricar ICs
-- CINVESTAV GDL, ITESO, UDG, Tec, IPN: programas de microelectrónica
-- Iniciativa Kutsari (anunciada feb 2025): centros de diseño en Puebla,
-  Jalisco, Sonora
-- QSM Semiconductores (Querétaro): fab de 450 nm MEMS en construcción
-
-**Lo que NO hay:**
-- **Cero startup fabless mexicana** con chip propio fabricado independientemente
-- **Cero chip comercial** diseñado y vendido desde México
-- **~5 personas** que han fabricado chips independientemente (todos académicos,
-  todos vía programas gratuitos como Tiny Tapeout o Efabless)
-
-### 5.3 LatAm en historial PICO Chipathon
-
-Países LatAm que han participado en PICO con chips taped-out:
-
-| País | Año | Proyecto |
-|------|-----|----------|
-| Brasil | 2022 | 60 GHz Demonstrator (U São Paulo) |
-| Brasil | 2023 | Bracolin (filter + LDO + bandgap + ADC, con Colombia) |
-| Chile | 2022 | DC-DC Buck para CubeSat (con Argentina + Uruguay) |
-| Chile | 2022 | Mix-Pix Mixed-Signal Smart Imaging (U Bío-Bío) |
-| Chile | 2023 | LTC2 (ADC + DAC + Clock + VRef, con Korea + Japan) |
-| Chile | 2025 | AC3E-Chile-team (en curso) |
-| Argentina | 2022 | DC-DC Buck CubeSat |
-| Uruguay | 2022 | DC-DC Buck CubeSat |
-| Colombia | 2023 | Bracolin (con Brasil) |
-| **México** | — | **Cero (hasta 2026)** |
-
-Si Nopal-Sense logra tape-out en oct 2026, sería **el primer chip mexicano en
-historial PICO Chipathon**. Eso por sí mismo es contribución a la diversidad
-geográfica del programa, que es algo que el blurb oficial *explícitamente
-encourages*.
-
-### 5.4 Por qué esta combinación específica nunca se ha hecho
-
-- México importa el problema (aguacate + Phytophthora) a escala global
-- México tiene la capacidad técnica (10,000+ ingenieros semi) pero subutilizada
-  en aplicaciones nacionales
-- México tiene la materia prima (fluorita #2 mundial, cobre top 10, plata #1
-  mundial) pero no la cadena de valor
-- Ningún equipo mexicano en historial PICO
-
-Nopal-Sense es la primera convergencia de esos hechos.
 
 ---
 
@@ -772,39 +705,6 @@ externa, sin excepción.**
 
 Este framing protege contra over-promising mientras deja la puerta abierta a
 upside si Layer 2 funciona empíricamente.
-
-**Variantes para audiencias específicas:**
-
-### 13.1 Para YC / inversores
-
-*"Every ag-sensing company measures soil at a single frequency and infers
-disease risk from environmental proxies. Nobody measures the
-frequency-dependent impedance spectrum, which carries distinct signatures at
-each band. We're designing a custom chip in GF180MCU 180nm that consolidates
-multiple commercial sensors into one die and adds a measurement channel that
-doesn't exist in any commercial product: electrical fingerprinting of
-microbial activity in the root zone. Even if the biological channel proves
-noisy in field deployment, sensor consolidation alone delivers significant
-BOM reduction and battery life extension. Operational backing via
-Zafra-AgTech (precision agriculture pilot in Mexico)."*
-
-### 13.2 Para académicos / IEEE Workshop
-
-*"Mixed-signal silicon platform on GF180MCU 180nm for multi-band impedance
-spectroscopy applied to agricultural soil monitoring. Integrates DDS,
-programmable TIA with auto-range, switching I/Q demodulator, and 14-bit SAR
-ADC for simultaneous measurement of ionic conductivity, dielectric
-permittivity, and interfacial dispersion in the 10-100 kHz band as a proxy
-for biological activity in the root zone. First Mexican silicon for
-agricultural application; architectural lineage from the 2022 PICO
-electrochemical water quality monitoring chip (USA5, U Tennessee)."*
-
-### 13.3 Para productores aguacateros
-
-*"Un sensor de suelo que mide más cosas que los actuales, dura más con una
-batería, y con el tiempo va a poder avisarte si hay riesgo de enfermedad en
-tus raíces antes de que se vea en el árbol. Se conecta al mismo sistema de
-alertas por WhatsApp que ya usas."*
 
 ---
 

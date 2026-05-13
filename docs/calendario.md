@@ -111,7 +111,6 @@ Leyenda: 🎓 = mentor lecture (oyente) · 👥 = participant review (presentas)
 - Atención **especial** a la presentación de Camilo (probable última 30 min). Anota: ¿menciona impedance spectroscopy? ¿menciona arquitecturas DDS? ¿muestra ejemplos de electroquímico?
 
 **Después:**
-- DM a Camilo: *"Hi Camilo, I'm working on a soil impedance spectroscopy AFE for agricultural IoT. Saw your MEMS overview — would love a 20-min chat about analog architectures for low-frequency electrochemical sensing in GF180MCU. Available next week?"*
 - Reproducir el tutorial del inversor end-to-end (schematic → layout → DRC → LVS) en tu máquina. **Si no corre, postea en `#general` antes del próximo viernes.**
 
 **Entregable user (interno):** Tutorial del inversor corriendo end-to-end en tu Docker.
@@ -165,8 +164,6 @@ Vipul te va a dar el flujo completo que TÚ vas a usar para diseñar el TIA, mix
 - Si menciona **gm/ID design methodology** (curvas en `resources/Sizing/`) — anota meticulosamente
 
 **Después:**
-- DM a Vipul: *"Vipul, your full-custom flow lecture answered the questions I had about [X, Y, Z]. I'm doing a TIA + bandgap + mixer in GF180 for soil impedance spectroscopy. Open to a 20-min sync next week to sanity-check my analog scope?"*
-- Mismo DM a Camilo si aún no respondió
 - Reproducir tutorial OTA de gLayout
 
 **Entregable user:** Flujo full-custom replicado en una celda simple (un OTA gLayout-generated).
@@ -270,7 +267,6 @@ Vipul te va a dar el flujo completo que TÚ vas a usar para diseñar el TIA, mix
 
 **Después:**
 - Empieza tu CACE datasheet preliminar para el chip — esto va a ser el **plan de medición** post-silicio que el programa exige bajo "Test It"
-- DM a Tim: *"Tim, working on AgTech sensor chip in GF180. Your CACE lecture clarified the measurement plan — I'm drafting a datasheet template now. Mind if I send it for a sanity check?"*
 
 **Entregable user:** `nopal-platform/v1-pico/measurement/cace_datasheet_v0.yaml`
 
