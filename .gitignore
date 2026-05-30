@@ -1,0 +1,26 @@
+.DS_Store
+*.swp
+*.swo
+*~
+.env
+
+# Simulation artifacts
+*.vcd
+v1-pico/tb/tb_spi_reg
+v1-pico/tb/tb_crc16
+v1-pico/tb/tb_pulse_counter
+v1-pico/tb/tb_onewire
+v1-pico/tb/tb_scheduler
+v1-pico/tb/tb_wake_timer
+v1-pico/tb/tb_cordic
+v1-pico/tb/tb_dds
+v1-pico/tb/tb_is_fsm
+v1-pico/tb/tb_alert
+v1-pico/tb/tb_calib
+v1-pico/tb/tb_mavg
+v1-pico/tb/tb_puf
+v1-pico/tb/tb_porbod
+v1-pico/tb/tb_sleepctrl
+v1-pico/tb/tb_spim
+v1-pico/tb/tb_i2c
+v1-pico/tb/tb_top
