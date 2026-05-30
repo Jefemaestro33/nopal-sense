@@ -13,14 +13,14 @@ are not part of the public PICO repo.
 |---|---|
 | Process | GlobalFoundries gf180mcuD 180 nm |
 | Domain | Mixed-signal sensor-control ASIC |
-| Padring | Workshop slot 88-pin |
+| Pad ring | Workshop slot 88-pin |
 | Die | 2935 x 2935 um |
 | Core | 2051 x 2051 um |
 | Supply | 3.3 V single rail |
 | Main clock | 1 MHz target |
 | Sleep clock | 32 kHz always-on target |
 | Host interface | SPI slave, mode 0, 250 kHz max with current sync design |
-| Digital regression | 184/184 assertions passing |
+| Digital regression | 185/185 assertions passing |
 
 ## Digital RTL
 
@@ -78,7 +78,7 @@ python3 v1-pico/sim/golden_model.py --test
 ## Known Public Follow-Ups
 
 - Add `bridge_controller.v` to decode trigger registers into external bridge commands.
-- Fix FRAM SPI chip-select pin assignment before silicon freeze.
+- Add bridge-controller logic for external SPI / I2C / 1-Wire transactions.
 - Add ADC / sensor behavioral stubs for fuller top-level verification.
 - Expand top-level integration coverage beyond current audited paths.
 

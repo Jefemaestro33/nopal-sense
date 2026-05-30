@@ -37,8 +37,7 @@ This document explains **HOW** the chip achieves what `SPEC_FROZEN.md` requires.
                  │  │  ┌───┘  │  └───┐   │                     │
                  │  ▼  ▼      ▼      ▼   ▼                     │
                  │ [IS probe] [DS18B20] [EC] [ATECC608] [FeRAM]│
-                 │ (pines    (temp)    (freq)(secure) (buffer) │
-                 │  inox                      elem.)            │
+                 │ (probe)   (temp)    (freq)(secure) (buffer) │
                  │                                             │
                  └─────────────────────────────────────────────┘
 ```
@@ -125,8 +124,7 @@ software.
     │  │  [Ring 32kHz sleep]──→ always-on clock + wake timer         │   │
     │  │  [POR + BOD]        ──→ reset distribution                  │   │
     │  │  [Clock gating] ×12  ──→ per-subsystem gates                │   │
-    │  │  [7× MOSFET switches] ──→ GPIO_SW[1..7] (external power)    │   │
-    │  │  [CLK_OUT buffer]    ──→ CLK_OUT pin                         │   │
+    │  │  [7× MOSFET switches] ──→ GPIO_SW[0..6] (external power)    │   │
     │  └─────────────────────────────────────────────────────────────┘   │
     └────────────────────────────────────────────────────────────────────┘
 ```
@@ -324,7 +322,7 @@ DIGITAL OSC ──┐     │    ┌──────┐   ┌─────�
      └──────────────────────────────────────────────┘
 ```
 
-**D-PWR-001:** Single voltage rail at 3.3V (PDK gf180mcuD no ships 1.8V std cells nativos).
+**D-PWR-001:** Single voltage rail at 3.3 V. The gf180mcuD setup does not provide native 1.8 V standard cells.
 - Original plan was VDD_D = 1.8V dual rail with external LDO — eliminated post-PDK-validation.
 - Standard cells available are 5V databook (`gf180mcu_fd_sc_mcu7t5v0`); operate at 3.3V with reduced speed vs nominal 5V, but power benefit vs 5V operation still substantial.
 - Analog domain at 3.3V — adequate dynamic range for IS block at 100 mVpp excitation.
@@ -334,8 +332,8 @@ DIGITAL OSC ──┐     │    ┌──────┐   ┌─────�
 - Gates controlled by scheduler FSM
 - Sleep mode gates everything except wake timer
 
-**D-PWR-003:** GPIO_SW[1..7] are strong PMOS switches driven by register bits
-- Each can sink/source 50 mA
+**D-PWR-003:** GPIO_SW[0..6] are strong PMOS switches driven by register bits
+- Each pad can drive up to 24 mA on-die; higher load currents require an external MOSFET.
 - Allow chip to power external sensors on-demand
 - Key enabler of <1 mA·h/day budget
 
@@ -427,7 +425,7 @@ Add sleep current (0.5 µA): total average ~0.7 µA
   t=5.34:  IS FSM done, update STATUS
 ```
 
-Total IS time: ~5-6 ms (well under 100 ms spec). All three frecuencias dentro de la β-dispersion band (OQ-006 = B bio-centric, 2026-05-13).
+Total IS time: ~5-6 ms (well under the 100 ms spec). All three frequencies are inside the selected operating band (OQ-006 resolved 2026-05-13).
 
 ### 5.3 Scenario C: Alert triggered
 
@@ -498,25 +496,25 @@ Total IS time: ~5-6 ms (well under 100 ms spec). All three frecuencias dentro de
 
 **Decision:** Internal RC acceptable. For DDS we derive from same clock, so frequencies are relative (ratio is accurate even if absolute is off).
 
-### 6.5 Why workshop slot 88-pin vs smaller padring
+### 6.5 Why workshop slot 88-pin vs smaller pad ring
 
-**Original SPEC said QFN-40.** PDK reality: el workshop slot del chipathon es 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS). Esto es lo que se confirma como padring final.
+**Original SPEC said QFN-40.** PDK reality: the Chipathon workshop slot is 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS). This is the confirmed final pad ring.
 
 **Pro 88-pin workshop slot:**
-- Suficientes pads analog (60) para todas las consolidation features
-- 20 bidir digital para SPI + control + power switches + IRQ aggregator
-- 4 power domains separados (analog/digital × VDD/VSS) para low-noise design
-- Fits perfectly with vertical integration vision (chip exports muchas señales al ESP32)
+- Enough analog pads (60) for all consolidation features.
+- 20 bidirectional digital pads for SPI, control, power switches, and interrupt aggregation.
+- 4 separated power-domain pads (analog/digital VDD/VSS) for low-noise design.
+- Supports a platform-ready sensor-control architecture.
 
 **Con:**
-- Die más grande (2935×2935 µm vs ~2.7 mm² original) — pero core area suficiente (2051×2051 µm)
+- Larger die (2935×2935 µm vs the original ~2.7 mm² target), but the 2051×2051 µm core area remains sufficient.
 
-**Decision:** workshop slot 88-pin confirmed. Habilita platform-ready architecture sin compromise.
+**Decision:** workshop slot 88-pin confirmed. It enables the platform-ready architecture without pin-pressure compromises for v1.
 
-Pin count budget post recortes:
+Pin-count budget after trimming:
 - 60 analog pads (IS electrodes + sensor inputs + VREF_OUT + analog controls)
-- 20 digital pads (SPI 4 + GPIO_SW 7 + INT 1 + 1Wire 1 + I2C 2 + clock 1 + reset 1 + spares 3)
-- Eliminados: EN_LDO, CS_MEM, PULSE_IN[1], TAMPER (muxed con GPIO_SW[1])
+- 20 digital pads (host SPI 4 + GPIO_SW 7 + INT 1 + 1-Wire 1 + I2C 2 + memory SPI 4 + pulse/tamper 1)
+- Removed: EN_LDO, CLK_OUT, and PULSE_IN[1]. TAMPER is muxed with PULSE_IN.
 
 ---
 
@@ -609,25 +607,25 @@ In practice: self-discharge (~2%/month) is the floor. Battery life: **6-18 month
 - **OQ-003:** Do we need brown-out detection? Trade-off: area vs reliability.
 - **OQ-004:** Should scheduler support user-programmable wake periods, or fix to the 6 presets?
 - **OQ-005:** Add dedicated test pins for analog monitor during debug?
-- **OQ-006 (resuelto 2026-05-13):** Frecuencias IS finales → **B: 10 kHz / 30 kHz / 100 kHz**. EC y VWC pueden seguir apoyadas por sensores externos según el sistema de prueba.
-- **OQ-007 (added 2026-05-07):** DC offset cancellation strategy — auto-zero firmware vs hardware AC coupling. Suelo tiene 50-280 mV DC offset típico.
-- **OQ-008 (added 2026-05-07):** T-correction on-chip vs off-chip software — REQ-PR-001 lineal Q8.8 no captura Debye/Arrhenius. Prefer off-chip correction unless mentor recommends otherwise.
-- **OQ-009 (added 2026-05-07):** VREF_OUT buffer strategy — 0.05% precisión exportada requiere buffer dedicado + compensación externa.
+- **OQ-006 (resolved 2026-05-13):** Final IS frequencies: **10 kHz / 30 kHz / 100 kHz**. EC and VWC can remain supported by external sensors depending on the test system.
+- **OQ-007 (added 2026-05-07):** DC offset cancellation strategy: firmware auto-zero vs hardware AC coupling. Raw electrodes may present 50-280 mV typical DC offset.
+- **OQ-008 (added 2026-05-07):** T-correction on-chip vs off-chip software. REQ-PR-001 linear Q8.8 does not capture Debye/Arrhenius behavior. Prefer off-chip correction unless mentor recommends otherwise.
+- **OQ-009 (added 2026-05-07):** VREF_OUT buffer strategy. Exported 0.05% precision requires a dedicated buffer plus external compensation.
 
-Estos se resuelven en mentor meetings post 2026-05-08 (chipathon kickoff).
+These are resolved in mentor meetings after the 2026-05-08 chipathon kickoff.
 
 ---
 
 ## 11. Modular Spine + Bring-Up Priority Strategy
 
-Para reducir risk de bring-up, los bloques del chip se organizan en **3
-priority tiers**.
+To reduce bring-up risk, the chip blocks are organized into **3 priority
+tiers**.
 
 ### Priority 1 (P1) — Must-work bring-up gate
 
 These blocks define whether the chip is usable as a measurement platform:
 
-- **IS path completo**: DDS → DAC → Buffer → TIA → Mixer I/Q → LPF
+- **Complete IS path**: DDS → DAC → Buffer → TIA → Mixer I/Q → LPF
 - **ADC 14-bit SAR**
 - **SPI slave** + register bank
 - **VREF + bandgap reference**
@@ -654,7 +652,7 @@ These are system-convenience and expansion features. Failure in v1 should not
 block basic bring-up:
 
 - **GPIO_SW programmable power switches**
-- **CLK_OUT export buffer**
+- **External bridge chip-select handling**
 - **INT aggregator**
 - **Tamper detection**
 - **PUF chip ID**

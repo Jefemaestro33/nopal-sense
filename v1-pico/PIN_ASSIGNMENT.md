@@ -1,16 +1,16 @@
 # Nopal-Sense v1 — Pin Assignment
 
-**Padring:** Workshop slot 88-pin (chipathon 2026 oficial — fork de Mauricio Montanares sobre `wafer-space/gf180mcu-project-template`, slot `workshop`)
+**Pad ring:** Official Chipathon 2026 workshop 88-pin slot, based on Mauricio Montanares' fork of `wafer-space/gf180mcu-project-template`, slot `workshop`
 **Die:** 2935 × 2935 µm
 **Core (active design area):** 2051 × 2051 µm (~4.2 mm²)
 
-This document specifies how Nopal-Sense lands on the chipathon workshop padring and the functional assignment of its 88 pads to the chip's signals.
+This document specifies how Nopal-Sense lands on the Chipathon workshop pad ring and the functional assignment of its 88 pads to the chip's signals.
 
 ---
 
-## 1. Padring overview
+## 1. Pad Ring Overview
 
-El padring del chipathon es **fijo y compartido** entre todos los participantes del Track B que usen `SLOT=workshop`. El `chip_top.sv` del padring wirea los pads a un `chip_core.sv` con port list inmutable. Tu chip va dentro de `chip_core.sv`.
+The Chipathon pad ring is **fixed and shared** by Track B participants using `SLOT=workshop`. The pad-ring `chip_top.sv` wires pads into a `chip_core.sv` module with an immutable port list. The Nopal-Sense design lives inside `chip_core.sv`.
 
 ### 1.1 Pad composition (per `src/slot_defines.svh` block `SLOT_WORKSHOP`)
 
@@ -54,7 +54,7 @@ LibreLane reads `PAD_*` lists clockwise starting from the south-west corner:
 
 ## 2. `chip_core.sv` port contract (workshop slot)
 
-Inmutable. Tu RTL debe respetar exactamente esta signature:
+Immutable. The RTL must match this signature exactly:
 
 ```verilog
 module chip_core #(
@@ -67,8 +67,8 @@ module chip_core #(
     inout  wire VSS,
     `endif
 
-    input  wire clk,                                  // del clk_pad dedicado
-    input  wire rst_n,                                // del rst_n_pad dedicado (active-low)
+    input  wire clk,                                  // from dedicated clk_pad
+    input  wire rst_n,                                // from dedicated rst_n_pad (active-low)
     input  wire [NUM_INPUT_PADS-1:0]  input_in,       // 1 spare CMOS input
     output wire [NUM_INPUT_PADS-1:0]  input_pu,       // tie to '0
     output wire [NUM_INPUT_PADS-1:0]  input_pd,       // tie to '0
@@ -86,7 +86,7 @@ module chip_core #(
 
 ### 2.1 Default-safe bidir pad controls
 
-Copia esto en `chip_core.sv` salvo razón para divergir:
+Use this default in `chip_core.sv` unless there is a specific reason to diverge:
 
 ```verilog
 assign input_pu = '0;
@@ -103,9 +103,9 @@ assign bidir_ie = ~bidir_oe;  // input enable opposite to output enable
 
 ## 3. Functional assignment for Nopal-Sense
 
-Mapeo lógico → pad físico para los 20 bidir + 60 analog del workshop slot. Pad ordering (clockwise) específico va en `slot_workshop.yaml`; aquí solo se documenta la asignación lógica.
+Logical-to-pad assignment for the workshop slot's 20 bidirectional and 60 analog pads. Physical clockwise pad ordering belongs in `slot_workshop.yaml`; this document only records the logical assignment.
 
-### 3.1 Digital bidir (20 pads disponibles)
+### 3.1 Digital bidir (20 pads available)
 
 | bidir[N] | Signal | Direction | Function |
 |---|---|---|---|
@@ -114,25 +114,25 @@ Mapeo lógico → pad físico para los 20 bidir + 60 analog del workshop slot. P
 | 2 | `SCK_S` | input | SPI slave clock |
 | 3 | `CS_S` | input, active-low | SPI slave chip select |
 | 4 | `INT_OUT` | output, active-low | Interrupt aggregator (wakes ESP32) |
-| 5 | `CLK_OUT` | output | Calibrated 1 MHz clock export to PCB |
+| 5 | `CS_MEM` | output, active-low | External FeRAM chip select |
 | 6-12 | `GPIO_SW[0..6]` | output | 7 programmable power switches (24 mA bidir drive) |
 | 13 | `OWIRE` | bidir, open-drain | 1-Wire master (DS18B20 + DS28E07 probe IDs) |
 | 14 | `I2C_SDA` | bidir, open-drain | Bit-banged I2C data (ATECC608 + other I2C sensors) |
 | 15 | `I2C_SCL` | output, open-drain | Bit-banged I2C clock |
 | 16 | `MOSI_M` | output | SPI master out (FeRAM external) |
 | 17 | `MISO_M` | input | SPI master in |
-| 18 | `SCK_M` / `CS_MEM` muxed | output | SPI master clock OR FeRAM CS (one register bit selects) |
+| 18 | `SCK_M` | output | SPI master clock |
 | 19 | `PULSE_IN` / `TAMPER` muxed | input | EC probe pulse counter OR tamper reed switch (mode bit selects) |
 
-**Trade-offs explícitos vs SPEC original QFN-40:**
-- `EN_LDO` eliminado (no hay LDO externo en arquitectura 3.3V única)
-- `CS_MEM` muxed con `SCK_M` (cuando hablas FeRAM, SCK_M y CS_MEM no son simultáneos en una transaction simple)
-- `PULSE_IN[1]` (rain/wind) eliminado a v2; solo EC pulse en v1
-- `TAMPER` muxed con `PULSE_IN[0]` (tamper input es estático, no contiende con counter rate)
+**Explicit trade-offs vs the original QFN-40-oriented SPEC:**
+- `EN_LDO` removed: v1 uses a single 3.3 V architecture with no external LDO enable pin.
+- `CLK_OUT` removed from the external pinout to dedicate `bidir[5]` to `CS_MEM`; SPI memory requires chip select and SCK simultaneously.
+- `PULSE_IN[1]` (rain/wind) deferred to v2; v1 keeps one pulse input.
+- `TAMPER` muxed with `PULSE_IN[0]`; tamper is static and does not contend with the pulse counter in the intended modes.
 
-### 3.2 Analog (60 pads disponibles — sobrados)
+### 3.2 Analog (60 pads available)
 
-Active assignment (12 de 60 usados). 48 restantes libres para v1.1 / debug / test points.
+Active assignment: 12 of 60 pads used. The remaining 48 pads are reserved for v1.1, debug, or test points.
 
 | analog[N] | Signal | Direction | Function |
 |---|---|---|---|
@@ -150,7 +150,7 @@ Active assignment (12 de 60 usados). 48 restantes libres para v1.1 / debug / tes
 | `clk_pad` | `clk` | External 1 MHz clock input (Schmitt). Can also use internal RC if `clk` floats |
 | `rst_n_pad` | `rst_n` | External active-low reset |
 | `input[0]` | spare | Used for `SPI_DEBUG_EN` or tie to GND if unused |
-| DVDD × 4 | VDD | 3.3V supply (4 pads distributed around padring for IR drop) |
+| DVDD × 4 | VDD | 3.3V supply (4 pads distributed around the pad ring for IR drop) |
 | DVSS × 4 | GND | Ground (4 pads distributed) |
 
 ---
@@ -161,9 +161,9 @@ Active assignment (12 de 60 usados). 48 restantes libres para v1.1 / debug / tes
 
 | Parameter | Min | Max | Unit | Notes |
 |---|---|---|---|---|
-| VDD | -0.3 | 3.6 | V | Single rail; PDK gf180mcuD sin 1.8V std cells nativos |
-| Voltage on any digital I/O | -0.3 | 5.5 | V | I/O cells son 5V WR; tolerant a 5V externos |
-| Voltage on analog input | -0.3 | VDD + 0.3 | V | `asig_5p0` con double diode protection |
+| VDD | -0.3 | 3.6 | V | Single rail; gf180mcuD does not ship native 1.8 V standard cells |
+| Voltage on any digital I/O | -0.3 | 5.5 | V | I/O cells are 5 V wide-range pads; tolerant of external 5 V signals |
+| Voltage on analog input | -0.3 | VDD + 0.3 | V | `asig_5p0` with double-diode protection |
 | Storage temperature | -40 | 85 | °C | |
 | Junction temperature | — | 125 | °C | |
 | ESD (HBM) | 2000 | — | V | Per `asig_5p0` and `bi_24t` cell specs |
@@ -193,7 +193,7 @@ Active assignment (12 de 60 usados). 48 restantes libres para v1.1 / debug / tes
 
 | Parameter | Min | Max | Notes |
 |---|---|---|---|
-| SPI slave clock | — | 10 MHz | Up to 10 MHz supported |
+| SPI slave clock | — | 250 kHz | Synchronous slave sampled by 1 MHz system clock |
 | Setup time (MOSI to SCK) | 5 ns | — | |
 | Hold time (MOSI after SCK) | 5 ns | — | |
 | Clock-to-out (SCK to MISO) | — | 15 ns | |
@@ -204,7 +204,7 @@ Active assignment (12 de 60 usados). 48 restantes libres para v1.1 / debug / tes
 
 ## 5. PCB layout guidelines
 
-The padring of the chipathon shuttle is packaged by Channel Partner; the participant does not specify the package directly. For evaluation PCB design (Phase 5 bring-up Q1 2027):
+The pad ring of the Chipathon shuttle is packaged by Channel Partner; the participant does not specify the package directly. For evaluation PCB design (Phase 5 bring-up Q1 2027):
 
 ### 5.1 Ground plane strategy
 
@@ -226,10 +226,10 @@ The padring of the chipathon shuttle is packaged by Channel Partner; the partici
 - **GL-010:** Avoid crossing digital signals under analog traces
 - **GL-011:** Keep IS electrode cable <2 m to minimize parasitic capacitance
 
-### 5.4 Clock routing (CLK_OUT)
+### 5.4 Memory SPI routing
 
-- **GL-012:** `CLK_OUT` trace ≤50 mm with series termination (33 Ω)
-- **GL-013:** Do not fan out `CLK_OUT` to more than 2 loads without external buffer
+- **GL-012:** Route `SCK_M` and `CS_MEM` as a short, matched pair to the external FeRAM device.
+- **GL-013:** Keep SPI memory traces away from sensitive analog routes and add series damping if edge ringing appears during bring-up.
 
 ### 5.5 Reset and power-up
 
@@ -253,7 +253,7 @@ After chip arrival from Channel Partner:
 1. **Power-on test** — verify DVDD pads at 3.3V, sleep current <3 µA
 2. **VERSION register read** via SPI slave (`bidir[0..3]`) — expect 0x0100
 3. **Bandgap export check** — `VREF_OUT` on `analog[2]` should be 1.2V ±0.05%
-4. **CLK_OUT** on `bidir[5]` should be 1 MHz ±5%
+4. **External FeRAM chip-select** on `bidir[5]` should idle high and assert low during SPI memory transactions
 5. **ADC sanity** via `ADC_IN[0]` on `analog[3]` with known voltage reference
 6. **IS measurement loop** — drive `ELEC_A` (`analog[0]`), sense `ELEC_B` (`analog[1]`) against known impedances
 

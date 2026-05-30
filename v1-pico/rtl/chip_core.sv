@@ -5,7 +5,7 @@
  * chip_core.sv -- Workshop-slot pad-map wrapper for Nopal-Sense v1
  *
  * Implements the immutable port contract expected by the SSCS
- * Chipathon 2026 workshop padring fork (Mauricio-xx). Maps the 20
+ * Chipathon 2026 workshop pad-ring fork (Mauricio-xx). Maps the 20
  * bidir pads + 60 analog pads + the dedicated clk/rst_n + 1 spare
  * input pad to internal signals per PIN_ASSIGNMENT.md §3.
  *
@@ -15,14 +15,14 @@
  *   bidir[ 2] SCK_S    input
  *   bidir[ 3] CS_S     input, active-low
  *   bidir[ 4] INT_OUT  output, active-low
- *   bidir[ 5] CLK_OUT  output
+ *   bidir[ 5] CS_MEM   output, active-low
  *   bidir[ 6..12] GPIO_SW[0..6] outputs (24 mA drive)
  *   bidir[13] OWIRE    bidir open-drain
  *   bidir[14] I2C_SDA  bidir open-drain
  *   bidir[15] I2C_SCL  output open-drain
  *   bidir[16] MOSI_M   output
  *   bidir[17] MISO_M   input
- *   bidir[18] SCK_M / CS_MEM muxed (output)
+ *   bidir[18] SCK_M    output
  *   bidir[19] PULSE_IN / TAMPER muxed (input)
  *
  * Analog map (per PIN_ASSIGNMENT.md §3.2):
@@ -108,14 +108,14 @@ module chip_core #(
     assign bidir_out[2]      = 1'b0;          // SCK_S input
     assign bidir_out[3]      = 1'b0;          // CS_S input
     assign bidir_out[4]      = int_out_n;
-    assign bidir_out[5]      = clk_out;
+    assign bidir_out[5]      = spi_m_cs_n;
     assign bidir_out[12:6]   = gpio_sw;
     assign bidir_out[13]     = owire_out;
     assign bidir_out[14]     = i2c_sda_out;
     assign bidir_out[15]     = i2c_scl_out;
     assign bidir_out[16]     = spi_m_mosi;
     assign bidir_out[17]     = 1'b0;          // MISO_M input
-    assign bidir_out[18]     = spi_m_sck;     // (or CS_MEM via fw mux)
+    assign bidir_out[18]     = spi_m_sck;
     assign bidir_out[19]     = 1'b0;          // PULSE_IN/TAMPER input
 
     // ============================================================
@@ -127,14 +127,14 @@ module chip_core #(
     assign bidir_oe[2]       = 1'b0;          // SCK_S input
     assign bidir_oe[3]       = 1'b0;          // CS_S input
     assign bidir_oe[4]       = 1'b1;          // INT_OUT drive
-    assign bidir_oe[5]       = 1'b1;          // CLK_OUT drive
+    assign bidir_oe[5]       = 1'b1;          // CS_MEM drive
     assign bidir_oe[12:6]    = 7'b111_1111;   // GPIO_SW always driven
     assign bidir_oe[13]      = owire_oe;
     assign bidir_oe[14]      = i2c_sda_oe;
     assign bidir_oe[15]      = i2c_scl_oe;
     assign bidir_oe[16]      = 1'b1;          // MOSI_M drive
     assign bidir_oe[17]      = 1'b0;          // MISO_M input
-    assign bidir_oe[18]      = 1'b1;          // SCK_M / CS_MEM drive
+    assign bidir_oe[18]      = 1'b1;          // SCK_M drive
     assign bidir_oe[19]      = 1'b0;          // PULSE_IN / TAMPER input
 
     // ============================================================
@@ -219,6 +219,7 @@ module chip_core #(
 
     /* verilator lint_off UNUSED */
     wire [31:0] chip_id_unused = chip_id_w;
+    wire        clk_out_unused = clk_out;
     wire        sig_unused = |{dac_code, dac_enable, bandgap_en, tia_en,
                                mixer_en, adc_en, adc_mux_sel, adc_start};
     /* verilator lint_on UNUSED */

@@ -5,18 +5,18 @@
 **Date:** 2026-04-18 (original) / 2026-05-08 (strategic clarifications)
 **Owner:** @Jefemaestro33
 
-Este documento es el **contrato técnico** entre el equipo de diseño y el mentor PICO.
-Todo cambio post-freeze requiere revisión formal.
+This document is the **technical contract** between the design team and the PICO mentor.
+Any post-freeze change requires formal review.
 
 ---
 
 ## 0. Priority strategy
 
-Para reducir bring-up risk del v1, los REQ-* se etiquetarán con priority labels:
+To reduce v1 bring-up risk, REQ-* items will be tagged with priority labels:
 
 - **[P1]** — Must-work bring-up gate. IS path + ADC + SPI + VREF + bandgap. Failure = no paper.
-- **[P2]** — Firmware-debugged si borderline. Humidity readout, EC, MUX, auto-zero. Failure = degraded but useful chip.
-- **[P3]** — Deferable a v1.1. Power switches, clock export, IRQ aggregator. Failure = bypass with commercial counterparts.
+- **[P2]** — Firmware-debuggable if borderline. Humidity readout, EC, MUX, auto-zero. Failure = degraded but useful chip.
+- **[P3]** — Deferable to v1.1. Power switches and interrupt aggregation. Failure = bypass with commercial counterparts.
 
 The public v1 chipathon scope is to validate the measurement and control
 hardware. Application-specific analytics remain off-chip.
@@ -27,42 +27,42 @@ hardware. Application-specific analytics remain off-chip.
 
 ### 1.1 In-scope (v1 PICO 2026)
 
-El chip Nopal-Sense v1 implementa:
+Nopal-Sense v1 implements:
 
-**SC-IN-001:** Interfaces de sensor consolidadas (SPI, 1-Wire, pulse counter, ADC)
-**SC-IN-002:** Impedance Spectroscopy a 3 frecuencias fijas en bio-band: **10 kHz, 30 kHz, 100 kHz** (OQ-006 resuelto 2026-05-13 → Opción B bio-centric)
-**SC-IN-003:** Sleep controller autónomo con wake timer
-**SC-IN-004:** Register bank 32×16-bit con acceso SPI slave
-**SC-IN-005:** PUF simple basado en SRAM power-up state (chip ID únicamente)
-**SC-IN-006:** 4 modos de operación con scheduler básico
-**SC-IN-007:** Alert engine con threshold comparators
+**SC-IN-001:** Consolidated sensor interfaces (SPI, 1-Wire, pulse counter, ADC)
+**SC-IN-002:** Impedance spectroscopy at 3 fixed frequencies: **10 kHz, 30 kHz, 100 kHz** (OQ-006 resolved 2026-05-13)
+**SC-IN-003:** Autonomous sleep controller with wake timer
+**SC-IN-004:** 32x16-bit register bank with SPI-slave access
+**SC-IN-005:** Simple SRAM power-up-state PUF (chip ID only)
+**SC-IN-006:** 4 operating modes with basic scheduler
+**SC-IN-007:** Alert engine with threshold comparators
 **SC-IN-008:** Connectivity bridges (12 specific external interfaces)
-**SC-IN-009:** 4 architectural exports (VREF, CLK, power switches, INT aggregator)
-**SC-IN-010:** CRC16 hardware para LoRa packet integrity
+**SC-IN-009:** Architectural exports and controls (VREF, power switches, INT aggregator, external bridge chip-selects)
+**SC-IN-010:** CRC16 hardware for packet integrity
 
-### 1.2 Out-of-scope (diferido a v2 o firmware ESP32)
+### 1.2 Out-of-scope (deferred to v2 or ESP32 firmware)
 
 **SC-OUT-001:** Application-level scoring and high-level inference (stays off-chip for iteration)
-**SC-OUT-002:** Fuzzy extractor PUF completo (v1 usa external ATECC608)
-**SC-OUT-003:** FeRAM on-chip (v1 usa external FeRAM SPI)
-**SC-OUT-004:** Tamper detection sofisticado (v1 usa reed switch input)
-**SC-OUT-005:** Hardware I2C master (v1 usa bit-banged state machine)
-**SC-OUT-006:** Secure boot (v1 usa firmware + ATECC608)
+**SC-OUT-002:** Full PUF fuzzy extractor (v1 uses external ATECC608)
+**SC-OUT-003:** On-chip FeRAM (v1 uses external SPI FeRAM)
+**SC-OUT-004:** Sophisticated tamper detection (v1 uses a reed-switch input)
+**SC-OUT-005:** Hardware I2C master (v1 uses a bit-banged state machine)
+**SC-OUT-006:** Secure boot (v1 uses firmware + ATECC608)
 **SC-OUT-007:** On-chip inference accelerator (v1 delegates high-level analysis off-chip)
-**SC-OUT-008:** Barrido IS programable (v1 solo 3 frecuencias fijas)
-**SC-OUT-009:** LDO 1.8V dual rail — eliminado por restricción PDK (v1 es 3.3V único, sin LDO externo).
-**SC-OUT-010:** JTAG formal (v1 usa SPI debug mode)
+**SC-OUT-008:** Programmable IS sweep (v1 uses only 3 fixed frequencies)
+**SC-OUT-009:** 1.8 V dual-rail LDO, removed due to PDK constraints (v1 is 3.3 V only, no external LDO)
+**SC-OUT-010:** Formal JTAG (v1 uses SPI debug mode)
 
 ### 1.3 Interfaces
 
-**Chip se comunica con:**
-- ESP32 host (vía SPI slave + GPIO interrupts)
-- DS18B20 temperature sensor (vía 1-Wire)
-- External FeRAM (vía SPI master, opcional)
-- External ATECC608 (vía bit-banged I2C, opcional)
-- Sensores analógicos (vía 8-ch ADC mux)
-- Pulse sources: EC probe, rain gauge, anemómetro
-- Impedance probes: electrodes A/B en suelo
+**Chip communicates with:**
+- ESP32 host (via SPI slave + GPIO interrupts)
+- DS18B20 temperature sensor (via 1-Wire)
+- External FeRAM (via SPI master, optional)
+- External ATECC608 (via bit-banged I2C, optional)
+- Analog sensors (via 8-channel ADC mux)
+- Pulse sources: EC probe, rain gauge, anemometer
+- Impedance probes: electrodes A/B
 
 ---
 
@@ -70,16 +70,16 @@ El chip Nopal-Sense v1 implementa:
 
 ### 2.1 Manufacturing
 
-**SP-TEC-001:** Proceso GlobalFoundries GF180MCU (180nm CMOS con HV option)
+**SP-TEC-001:** GlobalFoundries GF180MCU process (180 nm CMOS with HV option)
 **SP-TEC-002:** Tape-out via PICO Chipathon 2026 shuttle (Final Submission TBD ~Sept 2026, post Final Chip Review Aug 28)
-**SP-TEC-003:** Padring: workshop slot 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS, die 2935×2935 µm, core 2051×2051 µm)
+**SP-TEC-003:** Pad ring: workshop slot 88-pin (60 analog + 20 bidir + 4 DVDD + 4 DVSS, die 2935×2935 µm, core 2051×2051 µm)
 **SP-TEC-004:** Active design area budget: ~3-4 mm² within the 2051×2051 µm core
-**SP-TEC-005:** Metal layers: 5 (suficiente para digital + analog mixed)
+**SP-TEC-005:** Metal layers: 5 (sufficient for mixed analog/digital design)
 
 ### 2.2 Power
 
-**SP-PWR-001:** VDD (single rail): 3.3V ± 10% (rango 2.97-3.63V). Analog y digital comparten rail; PDK gf180mcuD no ship 1.8V std cells nativos.
-**SP-PWR-002:** I/O cells: 5V WR pads del workshop padring (operan a 3.3V con impacto en speed; permite interfacear directo con sensores 5V externos).
+**SP-PWR-001:** VDD (single rail): 3.3 V +/- 10% (range 2.97-3.63 V). Analog and digital share the rail; gf180mcuD does not ship native 1.8 V standard cells.
+**SP-PWR-002:** I/O cells: 5 V wide-range pads from the workshop pad ring. They operate at 3.3 V with speed impact and can interface directly with external 5 V signals.
 **SP-PWR-003:** I/O level: CMOS 3.3V compatible
 **SP-PWR-004:** Sleep current (deep sleep, wake timer only): <1 µA typical, 3 µA max
 **SP-PWR-005:** Active current (IS measurement, 100 ms burst): <2 mA typical, 3 mA max
@@ -393,7 +393,7 @@ This specification is considered FROZEN once:
 | Role | Name | Date | Signature |
 |------|------|------|-----------|
 | Design Lead | @Jefemaestro33 | — | — |
-| Mentor PICO | TBD (asignado 2026-05-01) | — | — |
+| Mentor PICO | TBD (assigned 2026-05-01) | — | — |
 | Reviewer | — | — | — |
 
 ---
@@ -403,7 +403,6 @@ This specification is considered FROZEN once:
 - GlobalFoundries GF180MCU PDK (open-source) — https://gf180mcu-pdk.readthedocs.io/
 - PICO Chipathon 2026 — https://sscs.ieee.org/technical-committees/tc-ose/sscs-pico-design-contest/
 - Kelleners et al. (2009) "Coil probe for in situ measurement of soil electrical impedance spectra", Soil Sci Soc Am J
-- Randles J.E.B. (1947) "Kinetics of rapid electrode reactions", Discuss Faraday Soc
 - Randles J.E.B. (1947) "Kinetics of rapid electrode reactions", Discuss Faraday Soc
 
 ## Appendix B: Abbreviations

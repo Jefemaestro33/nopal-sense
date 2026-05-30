@@ -50,12 +50,12 @@ nopal-sense/
 As of the latest public docs sync:
 
 - 18 functional RTL modules plus top-level integration and workshop wrapper.
-- 184/184 Icarus regression assertions passing.
+- 185/185 Icarus regression assertions passing.
 - Two external audit passes completed for Phase 1 digital integration.
 - P0 audit findings fixed in RTL.
 - Remaining public P1 items are integration hardening before silicon freeze:
-  bridge controller, FRAM chip-select pin assignment, ADC/sensor behavioral
-  stubs, and broader top-level coverage.
+  bridge-controller logic, ADC/sensor behavioral stubs, and broader top-level
+  coverage.
 
 ## Key Files
 

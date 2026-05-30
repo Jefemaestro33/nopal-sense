@@ -10,7 +10,7 @@
 ## 2026-05-08 — Strategic clarifications pre-kickoff
 
 - Public chip scope clarified for PICO review
-- v1 priority strategy defined: P1 (IS+ADC+SPI) / P2 (humidity, EC, MUX) / P3 (power switches, CLK export)
+- v1 priority strategy defined: P1 (IS+ADC+SPI) / P2 (humidity, EC, MUX) / P3 (power switches and bridge support)
 - README rewritten with platform framing
 - Internal research framing moved to private project notes
 
@@ -19,7 +19,7 @@
 - Created `nopal-sense` as standalone chipathon repo (split from `open-silicon-mx`)
 - Apache 2.0 license adopted (PICO requirement)
 - Architectural reality checks: voltage 3.3V single rail (not 1.8V+3.3V), workshop slot 88-pin (not QFN-40), die 2935×2935 µm
-- Pin assignment recortes: 24→20 digital signals (EN_LDO, CS_MEM, PULSE_IN[1] removed; TAMPER muxed)
+- Pin assignment trimmed from 24 to 20 digital signals for workshop-slot fit
 - Open Questions OQ-006 through OQ-009 added
 
 ## 2026-04-19 — Repository consolidation (pre-split)

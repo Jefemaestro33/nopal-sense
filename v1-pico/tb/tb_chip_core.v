@@ -8,7 +8,8 @@
  *
  * Test plan:
  *   T01-04 reset state: bidir_oe correct for SPI pads, MISO released
- *          when CS deasserted, INT_OUT high (no alert), GPIO_SW = 0
+ *          when CS deasserted, INT_OUT high (no alert), CS_MEM idle high,
+ *          GPIO_SW = 0
  *   T05    SPI read of VERSION (addr 0x1E) returns 0x0100
  *   T06    SPI write to CTRL (addr 0x00) then read back
  *   T07    SPI read of SCHED_WARMUP returns the default 0x0064
@@ -159,7 +160,8 @@ module tb_chip_core;
         check_eq({30'd0, bidir_oe[0], bidir_oe[2]}, 32'd0, "T01_spi_in_pads_oe0");
         check_eq({31'd0, bidir_oe[1]},              32'd1, "T02_miso_oe1");
         check_eq({31'd0, bidir_out[4]},             32'd1, "T03_int_out_high");
-        check_eq({25'd0, bidir_out[12:6]},          32'd0, "T04_gpio_sw_zero");
+        check_eq({30'd0, bidir_oe[5], bidir_out[5]}, 32'h3, "T04_cs_mem_idle_high");
+        check_eq({25'd0, bidir_out[12:6]},          32'd0, "T04b_gpio_sw_zero");
 
         // T05: SPI read VERSION (addr 0x1E)
         spi_read_reg(5'h1E, rd_val);
