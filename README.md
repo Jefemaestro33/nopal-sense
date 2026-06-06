@@ -32,7 +32,14 @@ nopal-sense/
 ├── CHANGELOG.md
 ├── LICENSE
 ├── docs/
-│   └── Project_Proposal.pptx
+│   ├── proposal/
+│   │   ├── Nopal-Sense_Project_Proposal.md
+│   │   ├── Nopal-Sense_Project_Proposal_slides.md
+│   │   ├── Nopal-Sense_Project_Proposal.pptx
+│   │   ├── Nopal-Sense_Project_Proposal.pdf
+│   │   ├── ISSUE_UPDATE.md
+│   │   └── assets/
+│   └── reports/
 ├── scripts/
 │   └── setup_docker.sh
 └── v1-pico/

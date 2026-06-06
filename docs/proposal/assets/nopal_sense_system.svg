@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Nopal-Sense v1 system block diagram</title>
+  <desc id="desc">Soil electrodes connect to a mixed-signal soil impedance spectroscopy path and a digital sensor hub that reports data to an ESP32 host over SPI.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#243447"/>
+    </marker>
+    <style>
+      .bg { fill: #f7f9fb; }
+      .soil { fill: #d8ecdf; stroke: #517c5b; stroke-width: 3; }
+      .afe { fill: #fff2cc; stroke: #9c7a20; stroke-width: 3; }
+      .digital { fill: #dce8ff; stroke: #355f9e; stroke-width: 3; }
+      .host { fill: #e8ddf7; stroke: #694c8f; stroke-width: 3; }
+      .aux { fill: #f2f2f2; stroke: #6e6e6e; stroke-width: 2; }
+      .title { font: 700 30px Arial, sans-serif; fill: #1f2933; }
+      .label { font: 700 21px Arial, sans-serif; fill: #1f2933; }
+      .small { font: 17px Arial, sans-serif; fill: #1f2933; }
+      .tiny { font: 15px Arial, sans-serif; fill: #44515f; }
+      .line { stroke: #243447; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .thin { stroke: #243447; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1200" height="630"/>
+  <text class="title" x="46" y="54">Nopal-Sense v1: Soil Impedance Spectroscopy Hub</text>
+  <text class="tiny" x="48" y="82">Track B - Circuits for Sensors | GF180MCU | multi-frequency root-zone measurement platform</text>
+
+  <rect class="soil" x="54" y="145" rx="12" ry="12" width="210" height="250"/>
+  <text class="label" x="94" y="195">Soil / Root Zone</text>
+  <text class="small" x="86" y="233">Electrode A</text>
+  <text class="small" x="86" y="265">Electrode B</text>
+  <text class="tiny" x="82" y="322">moisture, salinity,</text>
+  <text class="tiny" x="82" y="344">structure and root</text>
+  <text class="tiny" x="82" y="366">condition proxies</text>
+
+  <rect class="afe" x="338" y="118" rx="10" ry="10" width="292" height="330"/>
+  <text class="label" x="372" y="157">Soil IS Measurement Path</text>
+  <rect class="aux" x="368" y="190" rx="8" ry="8" width="232" height="45"/>
+  <text class="small" x="405" y="220">DDS + DAC excite</text>
+  <rect class="aux" x="368" y="254" rx="8" ry="8" width="232" height="45"/>
+  <text class="small" x="407" y="283">Buffer + TIA</text>
+  <rect class="aux" x="368" y="318" rx="8" ry="8" width="232" height="45"/>
+  <text class="small" x="403" y="347">I/Q mixer + LPF</text>
+  <rect class="aux" x="368" y="382" rx="8" ry="8" width="232" height="45"/>
+  <text class="small" x="392" y="411">14-bit SAR ADC / MUX</text>
+
+  <rect class="digital" x="706" y="118" rx="10" ry="10" width="320" height="330"/>
+  <text class="label" x="760" y="157">Digital Control Plane</text>
+  <rect class="aux" x="738" y="190" rx="8" ry="8" width="256" height="45"/>
+  <text class="small" x="773" y="220">SPI register bank</text>
+  <rect class="aux" x="738" y="254" rx="8" ry="8" width="256" height="45"/>
+  <text class="small" x="766" y="283">Scheduler + wake</text>
+  <rect class="aux" x="738" y="318" rx="8" ry="8" width="256" height="45"/>
+  <text class="small" x="768" y="347">IS FSM + CORDIC</text>
+  <rect class="aux" x="738" y="382" rx="8" ry="8" width="256" height="45"/>
+  <text class="small" x="751" y="411">Alerts + bridge control</text>
+
+  <rect class="host" x="1084" y="190" rx="10" ry="10" width="76" height="164"/>
+  <text class="label" transform="translate(1128 326) rotate(-90)">ESP32</text>
+  <text class="tiny" x="1050" y="382">host SPI</text>
+
+  <rect class="aux" x="716" y="505" rx="8" ry="8" width="300" height="72"/>
+  <text class="small" x="748" y="534">External support</text>
+  <text class="tiny" x="748" y="559">FeRAM, 1-Wire IDs/temp, I2C, pulse input</text>
+
+  <path class="line" d="M264 232 C292 232, 304 214, 338 214"/>
+  <path class="line" d="M338 405 C304 405, 292 300, 264 300"/>
+  <path class="line" d="M630 276 L706 276"/>
+  <path class="line" d="M1026 276 L1084 276"/>
+  <path class="thin" d="M866 448 L866 505"/>
+  <path class="thin" d="M706 404 C676 404, 660 404, 630 404"/>
+
+  <text class="tiny" x="292" y="205">small AC excitation</text>
+  <text class="tiny" x="280" y="428">soil response</text>
+  <text class="tiny" x="650" y="258">samples</text>
+  <text class="tiny" x="1036" y="258">data/control</text>
+</svg>
