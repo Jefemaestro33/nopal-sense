@@ -17,7 +17,7 @@ Chipathon proposal template.
 
 | Role | Name | GitHub | Notes |
 |---|---|---|---|
-| Design lead | Ernest Zermeño | @Jefemaestro33 | Individual Track B participant |
+| Design lead | Ernest Zermeño | @Jefemaestro33 | Universidad de Guadalajara; individual Track B participant |
 
 **Contact email:** ernest@zlabstudio.com
 

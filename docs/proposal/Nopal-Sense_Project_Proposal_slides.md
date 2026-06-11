@@ -6,7 +6,7 @@ Week 24 Project Proposal Review - June 12, 2026
 
 **Team members:**  
 Leader: Ernest Zermeño (@Jefemaestro33)  
-Individual Track B participant
+Affiliation: Universidad de Guadalajara (individual Track B participant)
 
 **Contact email:**  
 ernest@zlabstudio.com
