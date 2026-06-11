@@ -18,18 +18,18 @@ Secondary relevance: D - AI/LLM-assisted audit and documentation workflow
 # Project Information
 
 **Goal (2 sentences)**  
-Nopal-Sense aims to tape out a low-power mixed-signal soil-impedance spectroscopy ASIC for agricultural deployments. The chip generates controlled multi-frequency excitation through soil electrodes, measures the root-zone response, and exposes calibrated data through a simple SPI-controlled hub.
+Design a low-power mixed-signal ASIC for repeatable soil/root-zone impedance spectroscopy using buried electrodes. The research goal is to generate dense, calibrated datasets to test whether root-zone electrical patterns can indicate abnormal biological activity, including fungal or oomycete-related signals.
 
 **Design - High Level Proposal (2-3 sentences + image)**  
-The differentiating block is the soil impedance spectroscopy path: DDS/DAC excitation, electrode interface, TIA/IQ readout, filtering, and shared SAR ADC. Around it, v1 adds SPI registers, scheduler, alerts, and bridge interfaces; digital RTL is integrated under `v1-pico/` with 185/185 Icarus assertions passing. The tapeout scope is the spectroscopy measurement platform; long-term stress/root-disease inference belongs to off-chip datasets, software, and AI models after validation.
+The chip provides programmable AC excitation, electrode-interface readout, filtering, ADC access, and SPI-configurable control. It supports autonomous low-power frequency sweeps with synchronized moisture/temperature context and electrode contact/health checks. V1 is a measurement platform for calibrated soil data, not a pathogen-diagnosis chip.
 
 **Application (1 sentence)**  
-Low-cost agricultural soil impedance spectroscopy for irrigation, salinity, and root-zone condition tracking, with a future data path toward software models for validated fungal/oomycete-related stress patterns.
+Low-cost agricultural root-zone monitoring for irrigation, salinity, and abnormal-condition screening, with a long-term path toward validated fungal/oomycete pattern detection.
 
 **References**  
-SSCS Chipathon 2026 repo and guidelines; Nopal-Sense public repo/spec/architecture; Kelleners et al., 2009; Samouelian et al., 2005.
+AD5940/ADuCM355 datasheets; Bukhari et al., arXiv:2508.13379; Zhang et al., Biosensors 2025; Corona-Lopez et al., Plant Methods 2019; Settimi 2011.
 
-![](assets/nopal_sense_system.svg)
+![](assets/nopal_sense_chip_architecture.png)
 
 # Team Background
 
@@ -41,8 +41,7 @@ Software and applied technology work through zlabstudio. Previous work includes 
 
 # Questions, Suggestions, Doubts?
 
-- Is the v1 must-work scope realistic if limited to soil impedance spectroscopy AFE, shared SAR ADC, SPI register access, and low-power scheduling?
-- Should the ADC be a custom SAR implementation in v1, or should Nopal-Sense reuse an existing open-source/reference ADC to reduce schedule risk?
+- What is the recommended must-work scope for v1 if the full architecture is too large for the tapeout schedule?
+- Should v1 reuse an existing open-source/reference SAR ADC instead of a custom ADC design to reduce schedule risk?
 - What electrode protection, ESD strategy, and analog pad usage are recommended for soil probes connected outside the chip package?
-- Are 10 kHz, 30 kHz, and 100 kHz acceptable first-tapeout frequencies for root-zone impedance, or should the top frequency be reduced for robustness?
 - What minimum AMS validation evidence is expected by the July block and top-level simulation reviews?

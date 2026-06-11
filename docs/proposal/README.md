@@ -10,9 +10,11 @@ Project Proposal Review on June 12, 2026.
 | `Nopal-Sense_Project_Proposal.md` | Full proposal text for review and iteration |
 | `Nopal-Sense_Project_Proposal_slides.md` | Four-slide source matching the official Chipathon proposal template |
 | `Nopal-Sense_Project_Proposal.pptx` | Generated PowerPoint deck, if built with Pandoc |
-| `Nopal-Sense_Project_Proposal.pdf` | Generated PDF preview of the proposal deck |
+| `Nopal-Sense_Project_Proposal.pdf` | Generated PDF preview of the proposal text |
 | `ISSUE_UPDATE.md` | Public issue update text to use after publishing the deck |
-| `assets/nopal_sense_system.svg` | Editable system block diagram used by the PPTX source |
+| `assets/nopal_sense_chip_architecture.png` | Rendered ASIC functional architecture diagram used by the PPTX/PDF source |
+| `assets/nopal_sense_chip_architecture.svg` | Editable source for the ASIC functional architecture diagram |
+| `assets/nopal_sense_system.svg` | Earlier system block diagram kept as reference material |
 
 ## Build the PPTX Deck
 

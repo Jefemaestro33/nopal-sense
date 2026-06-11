@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Nopal-Sense ASIC functional architecture</title>
+  <desc id="desc">Functional architecture of the Nopal-Sense ASIC showing soil electrodes, analog front-end, digital control, environmental context channels, electrode health checks, and SPI host interface.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#17212f"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 700 30px Arial, sans-serif; fill: #17212f; }
+      .subtitle { font: 17px Arial, sans-serif; fill: #4b5b6c; }
+      .section { font: 700 20px Arial, sans-serif; fill: #17212f; }
+      .label { font: 700 17px Arial, sans-serif; fill: #17212f; }
+      .small { font: 15px Arial, sans-serif; fill: #223044; }
+      .tiny { font: 13px Arial, sans-serif; fill: #4b5b6c; }
+      .pin { font: 700 13px Arial, sans-serif; fill: #17212f; }
+      .asic { fill: #ffffff; stroke: #1f5f9f; stroke-width: 4; }
+      .afe { fill: #fff3cf; stroke: #9a7618; stroke-width: 2.5; }
+      .dig { fill: #dceafe; stroke: #2f5f9f; stroke-width: 2.5; }
+      .ctx { fill: #e4f4e8; stroke: #4f7d5b; stroke-width: 2.5; }
+      .ext { fill: #f0f3f6; stroke: #66717c; stroke-width: 2.5; }
+      .block { fill: #ffffff; stroke: #68727d; stroke-width: 2; }
+      .callout { fill: #f7e8ff; stroke: #77529b; stroke-width: 2; }
+      .line { stroke: #17212f; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .thin { stroke: #17212f; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .wire { stroke: #17212f; stroke-width: 2.5; fill: none; }
+      .pad { fill: #ffffff; stroke: #17212f; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1280" height="720"/>
+  <rect class="ext" x="48" y="138" rx="8" ry="8" width="190" height="170"/>
+  <text class="section" x="84" y="225">Soil / Roots</text>
+  <text class="small" x="78" y="262">Buried electrode A</text>
+  <text class="small" x="78" y="292">Buried electrode B</text>
+  <text class="tiny" x="76" y="326">water, salts, roots,</text>
+  <text class="tiny" x="76" y="348">biology and contact drift</text>
+
+  <rect class="ext" x="48" y="376" rx="8" ry="8" width="190" height="92"/>
+  <text class="section" x="76" y="462">Context</text>
+  <text class="small" x="76" y="492">temp / moisture</text>
+
+  <rect class="asic" x="306" y="76" rx="12" ry="12" width="668" height="458"/>
+  <text class="section" x="622" y="110">ASIC</text>
+  <text class="tiny" x="573" y="131">conceptual pad frame / GF180MCU</text>
+
+  <rect class="pad" x="386" y="66" width="22" height="22"/>
+  <text class="pin" x="382" y="56">VDD</text>
+  <rect class="pad" x="438" y="66" width="22" height="22"/>
+  <text class="pin" x="434" y="56">GND</text>
+  <rect class="pad" x="804" y="66" width="22" height="22"/>
+  <text class="pin" x="800" y="56">CLK</text>
+  <rect class="pad" x="858" y="66" width="22" height="22"/>
+  <text class="pin" x="852" y="56">RST</text>
+
+  <rect class="pad" x="296" y="186" width="22" height="22"/>
+  <text class="pin" x="262" y="184">E1</text>
+  <rect class="pad" x="296" y="254" width="22" height="22"/>
+  <text class="pin" x="262" y="268">E2</text>
+  <rect class="pad" x="296" y="420" width="22" height="22"/>
+  <text class="pin" x="246" y="436">AUX</text>
+
+  <rect class="pad" x="964" y="170" width="22" height="22"/>
+  <text class="pin" x="996" y="186">SCLK</text>
+  <rect class="pad" x="964" y="220" width="22" height="22"/>
+  <text class="pin" x="996" y="236">MOSI</text>
+  <rect class="pad" x="964" y="270" width="22" height="22"/>
+  <text class="pin" x="996" y="286">MISO</text>
+  <rect class="pad" x="964" y="320" width="22" height="22"/>
+  <text class="pin" x="996" y="336">CSn</text>
+  <rect class="pad" x="964" y="404" width="22" height="22"/>
+  <text class="pin" x="996" y="401">IRQ</text>
+
+  <rect class="afe" x="338" y="152" rx="8" ry="8" width="280" height="314"/>
+  <text class="section" x="392" y="186">Analog Front-End</text>
+  <rect class="block" x="368" y="206" rx="6" ry="6" width="220" height="38"/>
+  <text class="small" x="413" y="230">DDS / NCO</text>
+  <rect class="block" x="368" y="257" rx="6" ry="6" width="220" height="38"/>
+  <text class="small" x="392" y="281">DAC + electrode driver</text>
+  <rect class="block" x="368" y="308" rx="6" ry="6" width="220" height="38"/>
+  <text class="small" x="405" y="332">TIA / PGA readout</text>
+  <rect class="block" x="368" y="359" rx="6" ry="6" width="220" height="38"/>
+  <text class="small" x="404" y="383">I/Q demod + LPF</text>
+  <rect class="block" x="368" y="410" rx="6" ry="6" width="220" height="38"/>
+  <text class="small" x="407" y="434">ADC / MUX access</text>
+
+  <rect class="ctx" x="652" y="152" rx="8" ry="8" width="284" height="144"/>
+  <text class="section" x="707" y="186">Measurement Quality</text>
+  <rect class="block" x="680" y="206" rx="6" ry="6" width="228" height="36"/>
+  <text class="small" x="709" y="229">contact / health check</text>
+  <rect class="block" x="680" y="250" rx="6" ry="6" width="228" height="36"/>
+  <text class="small" x="708" y="273">calibration reference path</text>
+
+  <rect class="dig" x="652" y="322" rx="8" ry="8" width="284" height="144"/>
+  <text class="section" x="705" y="356">Digital Control</text>
+  <rect class="block" x="680" y="376" rx="6" ry="6" width="228" height="36"/>
+  <text class="small" x="724" y="399">sweep scheduler</text>
+  <rect class="block" x="680" y="420" rx="6" ry="6" width="228" height="36"/>
+  <text class="small" x="718" y="443">SPI registers / flags</text>
+
+  <path class="line" d="M238 212 L296 197"/>
+  <path class="line" d="M318 265 L238 242"/>
+  <path class="thin" d="M238 422 L296 431"/>
+  <path class="wire" d="M318 197 L348 197"/>
+  <path class="wire" d="M318 265 L348 265"/>
+  <path class="thin" d="M588 276 L650 224"/>
+  <path class="thin" d="M588 429 L650 394"/>
+  <path class="thin" d="M794 296 L794 322"/>
+
+  <rect class="ext" x="1070" y="202" rx="8" ry="8" width="156" height="126"/>
+  <text class="section" x="1111" y="242">ESP32</text>
+  <text class="small" x="1104" y="274">host control</text>
+  <text class="small" x="1104" y="302">data logging</text>
+  <path class="line" d="M986 268 L1070 268"/>
+
+  <rect class="callout" x="1070" y="378" rx="8" ry="8" width="156" height="86"/>
+  <text class="section" x="1106" y="412">Outputs</text>
+  <text class="small" x="1094" y="442">impedance + flags</text>
+
+  <path class="thin" d="M986 414 L1070 414"/>
+
+</svg>
