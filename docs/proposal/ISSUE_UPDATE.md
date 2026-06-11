@@ -5,6 +5,8 @@ Team members
 |---|---|---|---|
 | jefemaestro33 | @Jefemaestro33 | Universidad de Guadalajara (undergraduate) | Team lead / design lead |
 
+Registration/contact note: original registration email was contacto@zlabstudio.com; preferred/current contact is ernest@zlabstudio.com after the domain email update. Both refer to Ernest Zermeño (@Jefemaestro33).
+
 Overview: Nopal-Sense is a low-power mixed-signal ASIC for repeatable soil/root-zone impedance spectroscopy using buried electrodes. V1 is a measurement and data-generation platform with moisture/temperature context and electrode contact/health checks; pathogen or species inference belongs to later off-chip datasets and validated software models.
 
 Size: Official workshop 88-pin slot; die 2935 x 2935 um; core 2051 x 2051 um.
