@@ -24,3 +24,4 @@ v1-pico/tb/tb_sleepctrl
 v1-pico/tb/tb_spim
 v1-pico/tb/tb_i2c
 v1-pico/tb/tb_top
+v1-pico/tb/tb_nopal_top

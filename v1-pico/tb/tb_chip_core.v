@@ -158,7 +158,12 @@ module tb_chip_core;
 
         // T01-04: reset state checks
         check_eq({30'd0, bidir_oe[0], bidir_oe[2]}, 32'd0, "T01_spi_in_pads_oe0");
-        check_eq({31'd0, bidir_oe[1]},              32'd1, "T02_miso_oe1");
+        check_eq({31'd0, bidir_oe[1]},              32'd0, "T02_miso_released_idle");
+        bidir_in_r[3] = 1'b0;  // CS low selects the SPI slave; MISO pad should drive
+        repeat (2) @(posedge clk);
+        check_eq({31'd0, bidir_oe[1]},              32'd1, "T02b_miso_oe_selected");
+        bidir_in_r[3] = 1'b1;
+        repeat (2) @(posedge clk);
         check_eq({31'd0, bidir_out[4]},             32'd1, "T03_int_out_high");
         check_eq({30'd0, bidir_oe[5], bidir_out[5]}, 32'h3, "T04_cs_mem_idle_high");
         check_eq({25'd0, bidir_out[12:6]},          32'd0, "T04b_gpio_sw_zero");

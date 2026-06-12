@@ -6,9 +6,9 @@ VVP = vvp
 RTL = ../rtl
 TB = .
 
-.PHONY: all clean test_spi test_crc test_pulse test_onewire test_scheduler test_wake_timer test_cordic test_dds test_is_fsm test_alert test_calib test_mavg test_puf test_porbod test_sleepctrl test_spim test_i2c test_top
+.PHONY: all clean test_spi test_crc test_pulse test_onewire test_scheduler test_wake_timer test_cordic test_dds test_is_fsm test_alert test_calib test_mavg test_puf test_porbod test_sleepctrl test_spim test_i2c test_top test_nopal_top
 
-all: test_spi test_crc test_pulse test_onewire test_scheduler test_wake_timer test_cordic test_dds test_is_fsm test_alert test_calib test_mavg test_puf test_porbod test_sleepctrl test_spim test_i2c test_top
+all: test_spi test_crc test_pulse test_onewire test_scheduler test_wake_timer test_cordic test_dds test_is_fsm test_alert test_calib test_mavg test_puf test_porbod test_sleepctrl test_spim test_i2c test_top test_nopal_top
 
 test_spi:
 	@$(IVERILOG) -o tb_spi_reg $(TB)/tb_spi_reg.v $(RTL)/spi_slave.v $(RTL)/reg_bank.v
@@ -85,8 +85,12 @@ test_top:
 	    $(RTL)/wake_timer.v $(RTL)/is_fsm.v $(RTL)/cordic.v \
 	    $(RTL)/dds_control.v $(RTL)/alert_engine.v $(RTL)/puf.v \
 	    $(RTL)/sleep_ctrl.v $(RTL)/spi_master.v $(RTL)/i2c_bitbang.v \
-	    $(RTL)/onewire_master.v
+	    $(RTL)/onewire_master.v $(RTL)/sensor_read_controller.v $(RTL)/calibration.v $(RTL)/moving_avg.v
 	@$(VVP) tb_top | grep -E "PASS|FAIL|\*\*\*"
 
+test_nopal_top:
+	@$(IVERILOG) -g2012 -o tb_nopal_top $(TB)/tb_nopal_top.v $(TB)/adc_behavioral.v $(RTL)/nopal_sense_top.v $(RTL)/spi_slave.v $(RTL)/reg_bank.v $(RTL)/scheduler.v $(RTL)/wake_timer.v $(RTL)/is_fsm.v $(RTL)/cordic.v $(RTL)/dds_control.v $(RTL)/alert_engine.v $(RTL)/puf.v $(RTL)/sleep_ctrl.v $(RTL)/spi_master.v $(RTL)/i2c_bitbang.v $(RTL)/onewire_master.v $(RTL)/sensor_read_controller.v $(RTL)/calibration.v $(RTL)/moving_avg.v
+	@$(VVP) tb_nopal_top | grep -E "PASS|FAIL|\*\*\*"
+
 clean:
-	rm -f tb_spi_reg tb_crc16 tb_pulse_counter tb_onewire tb_scheduler tb_wake_timer tb_cordic tb_dds tb_is_fsm tb_alert tb_calib tb_mavg tb_puf tb_porbod tb_sleepctrl tb_spim tb_i2c tb_top *.vcd
+	rm -f tb_spi_reg tb_crc16 tb_pulse_counter tb_onewire tb_scheduler tb_wake_timer tb_cordic tb_dds tb_is_fsm tb_alert tb_calib tb_mavg tb_puf tb_porbod tb_sleepctrl tb_spim tb_i2c tb_top tb_nopal_top *.vcd

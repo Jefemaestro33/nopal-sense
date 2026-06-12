@@ -5,6 +5,13 @@ Nopal-Sense v1 — Complete Golden Model
 Bit-exact Python reference for every digital module in the chip
 plus physics simulator for Impedance Spectroscopy validation.
 
+CAVEAT (Phase 1b): the RTL calibration now SATURATES to the Q8.8 rail
+(calibration.v) and the sensor moving average divides by the full window
+during warm-up (moving_avg.v). The Python `calibrate_reading` and the
+moving-average helper do NOT yet match these edge behaviors, so the model is
+bit-exact only for in-range, steady-state values. Reconcile both before
+generating cocotb vectors from this model (tracked: golden-model saturation).
+
 Maps to SPEC_FROZEN.md requirements. Test vectors generated here
 feed cocotb testbenches for RTL verification.
 

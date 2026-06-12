@@ -109,6 +109,7 @@ module nopal_sense_top (
     wire [15:0] gpio_sw_ctrl_reg;
     wire [15:0] sched_period_reg;
     wire [15:0] sched_warmup_reg;
+    wire [15:0] cal_a_reg, cal_b_reg, cal_alpha_reg, cal_tref_reg;
 
     // Scheduler I/O
     wire        wake_pulse_main;
@@ -127,6 +128,14 @@ module nopal_sense_top (
     wire        status_measuring;
     wire        status_alert_active;
     wire        status_is_done;
+    wire        is_error_w;          // is_fsm ADC/electrode-fault -> STATUS bit 4
+    wire        sns_error_w;         // sensor_read_controller ADC fault
+
+    // Shared-ADC arbitration + sensor_read_controller signals
+    wire        is_adc_start,  sns_adc_start;
+    wire [2:0]  is_adc_mux,    sns_adc_mux;
+    wire        sns_busy, sns_read_done, sns_hw_sensor_wr;
+    wire [15:0] sns_h10_h20, sns_h30_temp, sns_ec_freq, sns_battery;
 
     // CORDIC
     wire        cordic_start;
@@ -190,7 +199,7 @@ module nopal_sense_top (
     //   bit 4 error  bits 5-15 error_code (reserved for v1.1)
     wire [15:0] live_status = {
         11'd0,                // bits 15..5 reserved
-        1'b0,                 // bit 4 error (TBD diag_writer)
+        is_error_w | sns_error_w, // bit 4 error (is_fsm or sensor ADC fault)
         status_is_done,       // bit 3
         status_alert_active,  // bit 2
         status_measuring,     // bit 1
@@ -204,10 +213,10 @@ module nopal_sense_top (
         .wdata(reg_wdata), .rdata(reg_rdata),
         // Hardware status writes -- unused now that STATUS is mirrored
         .hw_status_wr(1'b0), .hw_status(16'd0),
-        // Sensor writes -- tied off in v1 (sensor_read controller TBD)
-        .hw_sensor_wr(1'b0),
-        .hw_h10_h20(16'd0), .hw_h30_temp(16'd0),
-        .hw_ec_freq(16'd0), .hw_battery(16'd0),
+        // Sensor writes from sensor_read_controller
+        .hw_sensor_wr(sns_hw_sensor_wr),
+        .hw_h10_h20(sns_h10_h20), .hw_h30_temp(sns_h30_temp),
+        .hw_ec_freq(sns_ec_freq), .hw_battery(sns_battery),
         // IS writes
         .hw_is_wr(hw_is_wr),
         .hw_z_mag_10k(hw_z_mag_10k),   .hw_z_phase_10k(hw_z_phase_10k),
@@ -225,17 +234,18 @@ module nopal_sense_top (
         .ctrl_reg(ctrl_reg), .trigger_reg(trigger_reg),
         .gpio_sw_ctrl_reg(gpio_sw_ctrl_reg),
         .sched_period_reg(sched_period_reg),
-        .sched_warmup_reg(sched_warmup_reg)
+        .sched_warmup_reg(sched_warmup_reg),
+        .cal_a_reg(cal_a_reg), .cal_b_reg(cal_b_reg),
+        .cal_alpha_reg(cal_alpha_reg), .cal_tref_reg(cal_tref_reg)
     );
 
-    // Pull sensor + threshold mirrors out of reg_bank for alert_engine
-    // (Note: reg_bank doesn't expose them; in v1 we tie to defaults.
-    // Wiring them through requires adding read taps in reg_bank, a
-    // pure-additive change deferred to Phase 1b.)
-    assign h10_h20_reg  = 16'd0;
-    assign h30_temp_reg = 16'd0;
-    assign ec_freq_reg  = 16'd0;
-    assign battery_reg  = 16'd0;
+    // alert_engine sees the live sensor values produced by the
+    // sensor_read_controller. Thresholds stay at the reg_bank reset
+    // defaults for now (firmware-config read taps are a follow-up).
+    assign h10_h20_reg  = sns_h10_h20;
+    assign h30_temp_reg = sns_h30_temp;
+    assign ec_freq_reg  = sns_ec_freq;
+    assign battery_reg  = sns_battery;
     assign th_vpd_reg   = 16'h1800;
     assign th_hum_reg   = 16'h3700;
     assign th_temp_reg  = 16'h0500;
@@ -270,11 +280,36 @@ module nopal_sense_top (
         .status_is_done(status_is_done)
     );
 
-    // Sensor-read controller is TBD (deferred Phase 1b); for v1
-    // tie sensor_read_done high so scheduler can sequence through
-    // a sensor-less NORMAL cycle.
-    assign sensor_read_done = sensor_read_start;
+    // Sensor-read controller drives the ADC MUX sweep and writes the
+    // sensor registers; sensor_read_done now reflects the real read.
+    assign sensor_read_done = sns_read_done;
     assign self_test_done   = is_done;
+
+    sensor_read_controller #(.ADC_TIMEOUT(256)) u_sensor (
+        .clk(clk), .rst_n(rst_n),
+        .sensor_read_start(sensor_read_start),
+        .sensor_read_done(sns_read_done),
+        .adc_start(sns_adc_start),
+        .adc_mux_sel(sns_adc_mux),
+        .adc_valid(adc_valid),
+        .adc_data(adc_data),
+        .ec_count(16'd0),          // pulse_counter integration TBD
+        .cal_a(cal_a_reg), .cal_b(cal_b_reg),
+        .cal_alpha(cal_alpha_reg), .cal_tref(cal_tref_reg),
+        .hw_sensor_wr(sns_hw_sensor_wr),
+        .h10_h20(sns_h10_h20),
+        .h30_temp(sns_h30_temp),
+        .ec_freq(sns_ec_freq),
+        .battery(sns_battery),
+        .busy(sns_busy),
+        .is_error(sns_error_w)
+    );
+
+    // Shared-ADC arbitration (ARCHITECTURE D-IS-005): the sensor
+    // controller owns the ADC while reading; otherwise is_fsm drives it.
+    // The scheduler sequences SENSE then IS_SWEEP, so they never overlap.
+    assign adc_start   = sns_busy ? sns_adc_start : is_adc_start;
+    assign adc_mux_sel = sns_busy ? sns_adc_mux   : is_adc_mux;
 
     // ============================================================
     // Wake timer (sleep domain)
@@ -297,8 +332,8 @@ module nopal_sense_top (
         .is_done(is_done),
         .freq_sel(freq_sel_int),
         .dds_enable(dds_enable),
-        .adc_start(adc_start),
-        .adc_mux_sel(adc_mux_sel),
+        .adc_start(is_adc_start),
+        .adc_mux_sel(is_adc_mux),
         .adc_valid(adc_valid),
         .adc_data(adc_data),
         .cordic_start(cordic_start),
@@ -310,7 +345,8 @@ module nopal_sense_top (
         .hw_is_wr(hw_is_wr),
         .hw_z_mag_10k(hw_z_mag_10k),   .hw_z_phase_10k(hw_z_phase_10k),
         .hw_z_mag_30k(hw_z_mag_30k),   .hw_z_phase_30k(hw_z_phase_30k),
-        .hw_z_mag_100k(hw_z_mag_100k), .hw_z_phase_100k(hw_z_phase_100k)
+        .hw_z_mag_100k(hw_z_mag_100k), .hw_z_phase_100k(hw_z_phase_100k),
+        .is_error(is_error_w)
     );
 
     cordic u_cordic (

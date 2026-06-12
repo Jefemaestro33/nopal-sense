@@ -49,7 +49,8 @@ module is_fsm #(
     parameter SETTLE_30K_CYCLES  = 33,
     parameter SETTLE_100K_CYCLES = 10,
     parameter [2:0] ADC_MUX_I    = 3'd0,
-    parameter [2:0] ADC_MUX_Q    = 3'd1
+    parameter [2:0] ADC_MUX_Q    = 3'd1,
+    parameter ADC_TIMEOUT        = 1024   // max clk cycles to wait for adc_valid
 )(
     input  wire                  clk,
     input  wire                  rst_n,
@@ -83,7 +84,12 @@ module is_fsm #(
     output reg  [15:0]           hw_z_mag_30k,
     output reg  [15:0]           hw_z_phase_30k,
     output reg  [15:0]           hw_z_mag_100k,
-    output reg  [15:0]           hw_z_phase_100k
+    output reg  [15:0]           hw_z_phase_100k,
+
+    // Fault flag: ADC never returned a sample within ADC_TIMEOUT
+    // (electrode fault / stuck ADC) -- SPEC REQ-IS-012. Persists until
+    // the next sweep starts.
+    output reg                   is_error
 );
 
     // ============================================================
@@ -108,6 +114,7 @@ module is_fsm #(
     reg [9:0]           settle_count;
     reg signed [19:0]   i_acc;
     reg signed [19:0]   q_acc;
+    reg [11:0]          adc_wait_count;   // watchdog for adc_valid
 
     // ============================================================
     // Settle target per freq (combinational LUT)
@@ -143,6 +150,8 @@ module is_fsm #(
             settle_count    <= 10'd0;
             i_acc           <= 20'sd0;
             q_acc           <= 20'sd0;
+            adc_wait_count  <= 12'd0;
+            is_error        <= 1'b0;
             freq_sel        <= 2'b11;   // halted (matches DDS reset default)
             dds_enable      <= 1'b0;
             adc_start       <= 1'b0;
@@ -168,8 +177,10 @@ module is_fsm #(
             case (state)
                 S_IDLE: begin
                     if (is_sweep_start) begin
-                        freq_idx <= 2'd0;
-                        state    <= S_FREQ_START;
+                        freq_idx       <= 2'd0;
+                        is_error       <= 1'b0;   // clear fault on new sweep
+                        adc_wait_count <= 12'd0;
+                        state          <= S_FREQ_START;
                     end
                 end
 
@@ -193,9 +204,10 @@ module is_fsm #(
                 end
 
                 S_ADC_I: begin
-                    adc_mux_sel <= ADC_MUX_I;
-                    adc_start   <= 1'b1;
-                    state       <= S_ADC_I_WAIT;
+                    adc_mux_sel    <= ADC_MUX_I;
+                    adc_start      <= 1'b1;
+                    adc_wait_count <= 12'd0;
+                    state          <= S_ADC_I_WAIT;
                 end
 
                 S_ADC_I_WAIT: begin
@@ -204,13 +216,19 @@ module is_fsm #(
                         i_acc <= i_acc +
                                  {{6{adc_data[13]}}, adc_data};
                         state <= S_ADC_Q;
+                    end else if (adc_wait_count >= ADC_TIMEOUT[11:0] - 12'd1) begin
+                        is_error <= 1'b1;   // ADC/electrode fault
+                        state    <= S_DONE;
+                    end else begin
+                        adc_wait_count <= adc_wait_count + 12'd1;
                     end
                 end
 
                 S_ADC_Q: begin
-                    adc_mux_sel <= ADC_MUX_Q;
-                    adc_start   <= 1'b1;
-                    state       <= S_ADC_Q_WAIT;
+                    adc_mux_sel    <= ADC_MUX_Q;
+                    adc_start      <= 1'b1;
+                    adc_wait_count <= 12'd0;
+                    state          <= S_ADC_Q_WAIT;
                 end
 
                 S_ADC_Q_WAIT: begin
@@ -224,6 +242,11 @@ module is_fsm #(
                             sample_count <= sample_count + 6'd1;
                             state        <= S_ADC_I;
                         end
+                    end else if (adc_wait_count >= ADC_TIMEOUT[11:0] - 12'd1) begin
+                        is_error <= 1'b1;   // ADC/electrode fault
+                        state    <= S_DONE;
+                    end else begin
+                        adc_wait_count <= adc_wait_count + 12'd1;
                     end
                 end
 

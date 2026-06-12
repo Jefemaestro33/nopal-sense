@@ -56,7 +56,9 @@ module spi_slave #(
     reg        cmd_done;
     reg        data_phase;
 
-    assign miso = cs_active ? data_shift_out[15] : 1'bz;
+    // Keep core logic two-state. Pad-level high-Z is controlled by
+    // chip_core.sv through the MISO pad output-enable.
+    assign miso = data_shift_out[15];
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin

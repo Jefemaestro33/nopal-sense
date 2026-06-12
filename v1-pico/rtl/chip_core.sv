@@ -123,7 +123,7 @@ module chip_core #(
     //   1 = drive, 0 = release (high-Z via pad)
     // ============================================================
     assign bidir_oe[0]       = 1'b0;          // MOSI_S input
-    assign bidir_oe[1]       = 1'b1;          // MISO_S drive
+    assign bidir_oe[1]       = ~spi_cs_n;     // MISO_S drives only when selected
     assign bidir_oe[2]       = 1'b0;          // SCK_S input
     assign bidir_oe[3]       = 1'b0;          // CS_S input
     assign bidir_oe[4]       = 1'b1;          // INT_OUT drive

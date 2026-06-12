@@ -52,7 +52,11 @@ module reg_bank #(
     output wire [DATA_W-1:0]   trigger_reg,
     output wire [DATA_W-1:0]   gpio_sw_ctrl_reg,
     output wire [DATA_W-1:0]   sched_period_reg,
-    output wire [DATA_W-1:0]   sched_warmup_reg
+    output wire [DATA_W-1:0]   sched_warmup_reg,
+    output wire [DATA_W-1:0]   cal_a_reg,
+    output wire [DATA_W-1:0]   cal_b_reg,
+    output wire [DATA_W-1:0]   cal_alpha_reg,
+    output wire [DATA_W-1:0]   cal_tref_reg
 );
 
     // Register storage: 32 x 16-bit
@@ -102,6 +106,10 @@ module reg_bank #(
     assign gpio_sw_ctrl_reg = regs[A_GPIO_SW];
     assign sched_period_reg = regs[A_SCHED_PER];
     assign sched_warmup_reg = regs[A_SCHED_WARM];
+    assign cal_a_reg        = regs[A_CAL_A];
+    assign cal_b_reg        = regs[A_CAL_B];
+    assign cal_alpha_reg    = regs[A_CAL_ALPHA];
+    assign cal_tref_reg     = regs[A_CAL_TREF];
 
     // Reset defaults (per SPEC §5)
     integer i;

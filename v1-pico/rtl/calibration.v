@@ -17,14 +17,14 @@
  * the time-multiplexing policy lives in the higher-level sensor read
  * controller, not here.
  *
- * Truncation rules:
- *   a*x   -> bits [23:8] (Q8.8 result, drops top sign-extension and bottom
- *           fractional bits)
- *   alpha*(T-Tref) -> bits [27:12] (Q4.12*Q8.8 = Q12.20 -> Q8.8)
- *
- * Overflow saturation is NOT implemented; calibration coefficients are
- * assumed bounded so the integer byte of any intermediate fits the Q8.8
- * range. Out-of-range coefficients silently wrap.
+ * Fixed-point: a*x is Q16.16, alpha*(T-Tref) is Q12.20. Each term is
+ * re-expressed in Q8.8 keeping its full integer range, summed in a wide
+ * accumulator, and SATURATED to the signed 16-bit Q8.8 range
+ * [-128.0, +127.996]. In-range results are bit-identical to the original
+ * truncating form; an out-of-range result clamps to the rail instead of
+ * folding to the wrong sign. (The prior implementation wrapped; REQ-PR-001
+ * only mandates the Q8.8 formula, not the overflow behavior.) This matters
+ * for the sensor pipeline, where a wrapped value would read as 0.
  */
 
 `default_nettype none
@@ -46,14 +46,18 @@ module calibration (
 );
 
     wire signed [31:0] ax_full    = cal_a * x;             // Q16.16
-    wire signed [15:0] ax_q88     = ax_full[23:8];         // Q8.8
-
     wire signed [15:0] dt_q88     = t - cal_tref;          // Q8.8
-
     wire signed [31:0] adt_full   = cal_alpha * dt_q88;    // Q12.20
-    wire signed [15:0] adt_q88    = adt_full[27:12];       // Q8.8
 
-    wire signed [15:0] y_next     = ax_q88 + cal_b - adt_q88;
+    // each term to Q8.8 keeping full integer range, sum wide, then sat
+    wire signed [24:0] ax_w       = {ax_full[31], ax_full[31:8]};         // Q16.8
+    wire signed [24:0] adt_w      = {{5{adt_full[31]}}, adt_full[31:12]}; // Q12.8
+    wire signed [24:0] b_w        = {{9{cal_b[15]}}, cal_b};              // Q8.8
+    wire signed [24:0] y_w        = ax_w + b_w - adt_w;
+
+    wire signed [15:0] y_next     = (y_w >  25'sd32767) ? 16'sd32767  :
+                                    (y_w < -25'sd32768) ? -16'sd32768 :
+                                    y_w[15:0];
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
