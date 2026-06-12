@@ -70,9 +70,9 @@ datasets needed to test that harder question.
 - Public GF180MCU project repository created and synchronized with GitHub.
 - Frozen public v1 specification, architecture, and 88-pin workshop-slot pin
   assignment are available in `v1-pico/`.
-- 18 functional RTL modules plus top-level integration and workshop wrapper are
-  in the repo.
-- Current digital regression reports 185/185 Icarus assertions passing.
+- 18 functional RTL modules are implemented and module-tested; 13 are currently
+  instantiated in the top-level digital integration, plus the workshop wrapper.
+- Current Icarus module/top regression passes locally.
 - P0 digital integration audit findings have been fixed in RTL.
 
 ### Remaining Milestones Before Proposal Review
@@ -87,6 +87,8 @@ datasets needed to test that harder question.
 - Add `bridge_controller.v` to decode trigger registers into external SPI, I2C,
   and 1-Wire transactions.
 - Add ADC and sensor behavioral stubs for top-level verification.
+- Integrate or explicitly defer standalone support blocks that are currently
+  module-tested but outside the top-level netlist.
 - Expand top-level integration coverage beyond the current audited paths.
 - Begin analog AFE planning for DDS/DAC, buffer, TIA, I/Q mixer, low-pass
   filtering, shared SAR ADC, and bandgap/reference.
