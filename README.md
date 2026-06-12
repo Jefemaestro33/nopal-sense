@@ -64,9 +64,9 @@ As of the latest public docs sync:
   as children of the sensor-read controller (so 16 modules are in the netlist
   via direct + nested instances). Three remain unit-tested only: pulse counter,
   CRC16, and POR/BOD.
-- All 20 module- and top-level Icarus testbenches pass locally with zero
-  failures (`make all`). A full IS sweep and a sensor MUX read are exercised
-  end-to-end at the top level with a behavioral ADC model.
+- All 19 module- and top-level Icarus testbench targets pass locally with zero
+  failures (206 PASS assertions; `make all`). A full IS sweep and a sensor MUX
+  read are exercised end-to-end at the top level with a behavioral ADC model.
 - Two external audit passes completed for Phase 1 digital integration.
 - P0 audit findings fixed in RTL.
 - Remaining Phase 1c items before silicon freeze: integrate the pulse counter

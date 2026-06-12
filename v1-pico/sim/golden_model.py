@@ -2,7 +2,7 @@
 Nopal-Sense v1 — Complete Golden Model
 ========================================
 
-Bit-exact Python reference for every digital module in the chip
+Python reference model for every digital module in the chip
 plus physics simulator for Impedance Spectroscopy validation.
 
 CAVEAT (Phase 1b): the RTL calibration now SATURATES to the Q8.8 rail

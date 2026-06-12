@@ -20,7 +20,7 @@ are not part of the public PICO repo.
 | Main clock | 1 MHz target |
 | Sleep clock | 32 kHz always-on target |
 | Host interface | SPI slave, mode 0, 250 kHz max with current sync design |
-| Digital regression | 20 module/top testbenches, 0 failures (`make all`) |
+| Digital regression | 19 testbench targets, 0 failures (`make all`) |
 
 ## Digital RTL
 
