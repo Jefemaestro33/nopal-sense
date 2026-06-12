@@ -141,6 +141,7 @@ python3 v1-pico/sim/golden_model.py --test
 - [`SPEC_FROZEN.md`](SPEC_FROZEN.md)
 - [`ARCHITECTURE.md`](ARCHITECTURE.md)
 - [`PIN_ASSIGNMENT.md`](PIN_ASSIGNMENT.md)
+- [`../docs/ROADMAP.md`](../docs/ROADMAP.md)
 - [`rtl/`](rtl/)
 - [`tb/`](tb/)
 - [`sim/`](sim/)

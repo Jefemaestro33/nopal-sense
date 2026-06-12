@@ -32,6 +32,7 @@ nopal-sense/
 ├── CHANGELOG.md
 ├── LICENSE
 ├── docs/
+│   ├── ROADMAP.md
 │   ├── proposal/
 │   │   ├── Nopal-Sense_Project_Proposal.md
 │   │   ├── Nopal-Sense_Project_Proposal_slides.md
@@ -79,6 +80,7 @@ As of the latest public docs sync:
 - [`v1-pico/SPEC_FROZEN.md`](v1-pico/SPEC_FROZEN.md) — public technical requirements.
 - [`v1-pico/ARCHITECTURE.md`](v1-pico/ARCHITECTURE.md) — block-level design rationale.
 - [`v1-pico/PIN_ASSIGNMENT.md`](v1-pico/PIN_ASSIGNMENT.md) — workshop-slot pin map.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — phase roadmap and Phase 1c resume plan.
 - [`v1-pico/rtl/`](v1-pico/rtl/) — Verilog/SystemVerilog RTL.
 - [`v1-pico/tb/`](v1-pico/tb/) — Icarus Verilog test benches.
 - [`v1-pico/sim/golden_model.py`](v1-pico/sim/golden_model.py) — Python reference model.
